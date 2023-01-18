@@ -5,41 +5,83 @@ using System.Threading;
 
 public class CPHInline
 {
-    public static string logFile = @"E:\Stream\Logs\commands.log";
-    public static string logContent = "";
+    enum Paths {
+        LOG = @"E:\Stream\Logs\" + DateTime.Now.ToShortDateString() + ".log",
+        TXT = @"E:\Stream\Commands",
+        SFX = @"E:\Stream\Sounds",
+        GFX = @"E:\Stream\Gifs",
+        DATA = @"E:\Stream\Data",
+        VIEWER = @"E:\Stream\Data\Viewers"
+    };
 
-    public static string commandsFolder = @"E:\Stream\Commands";
-    public static string soundsFolder = @"E:\Stream\Sounds";
-    public static string gifsFolder = @"E:\Stream\Gifs";
-    public static string dataFolder = @"E:\Stream\Data";
-    private static string viewerFolder = @"E:\Stream\Data\Viewers";
+    private bool canPlayCommand = true;
 
-    private static bool canPlayPlaisir = true;
-    private static bool canPlaySoundOrGif = true;
-    private static Thread plaisirCooldown = new Thread(new ThreadStart(PlaisirEffectCooldown));
+    private string user, userID, message;
+    private bool isModerator;
+
+    public bool Execute() {
+        // Start by setting the received message variables
+        user = args["user"];
+        userID = args["userId"];
+        message = args["message"];
+        isModerator = (args["isModerator"].ToLower() == "true") ? true : false;
+
+        // Checks if it's a command
+        if (message.StartsWith("!")) {
+            string[] arguments = message.Split(" ");
+            string command = arguments[0].Replace("!","");
+
+            if (File.Exists(Paths.TXT + command + ".txt") && command != "mod") {
+                // Is a TXT command
+                ReadCommand(Paths.TXT + command + ".txt");
+            }
+            else if (Directory.Exists(Paths.TXT + command)) {
+                // Is a TXT command but runs a random file in that folder
+                Random r = new Random();
+                string[] cmds = Directory.GetFiles(Paths.TXT + command);
+                int cmdToExecute = r.Next(cmds.Length);
+
+                ReadCommand(Paths.TXT + command + @"\" + cmds[cmdToExecute] + ".txt");
+            }
+            else if (File.Exists(Paths.TXT + @"mod\" + command + ".txt") && isModerator) {
+                // Is a TXT command but runs a random file in that folder
+            }
+            else if (File.Exists(Paths.SFX + command + ".txt")) {
+                // Is a SFX command
+            }
+            else if (Directory.Exists(Paths.SFX + command)) {
+                // Is a SFX command but runs a random file in that folder
+                Random r = new Random();
+                string[] cmds = Directory.GetFiles(Paths.SFX + command);
+                int cmdToExecute = r.Next(cmds.Length);
+            }
+            else if (File.Exists(Paths.GFX + command + ".txt")) {
+                // Is a GFX command
+            }
+        }
+    }
+
+    private ReadCommand(string cmdFile) {
+        bool hasOutput = true;
+        string[] lines = File.ReadAllLines(cmdFile);
+
+        foreach(string l in lines) {
+            if (l.Contains("{user}")) { l.Replace("{user}", user); }
+
+            if (hasOutput) {
+                //CPH. 
+            }
+        }
+    }
+
+    /*
 
     private static int chanceRoulette = 6;
-
-    private static string[] commands;
-    private static string[] sounds;
-    private static string[] gifs;
-
-    private static string user;
-	private static bool modo;
-    private static string source;
-    private static int role;
-    private static string wholeMessage;
 
     public bool Execute()
     {
         try
         {
-            // Assign all needed variables
-            user = args["user"].ToString();
-			modo = (args["isModerator"].ToString() == "True") ? true : false;
-            source = args["userType"].ToString();
-            role = (source == "youtube") ? 0 : (int)args["role"];
-            wholeMessage = args["message"].ToString();
 
             // Then check the command
             if (wholeMessage.StartsWith("!"))
@@ -576,5 +618,5 @@ public class CPHInline
                 break;
         }
     }
-}// https://nightdev.com/hosted/obschat?theme=&channel=fredyjabe&fade=false&bot_activity=false&prevent_clipping=false
-// https://chat.restream.io/embed?token=01adc798-d13b-42fc-8a53-31d2d257d0de
+    */
+}
