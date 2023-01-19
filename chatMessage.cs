@@ -5,73 +5,140 @@ using System.Threading;
 
 public class CPHInline
 {
-    enum Paths {
-        LOG = @"E:\Stream\Logs\" + DateTime.Now.ToShortDateString() + ".log",
-        TXT = @"E:\Stream\Commands",
-        SFX = @"E:\Stream\Sounds",
-        GFX = @"E:\Stream\Gifs",
-        DATA = @"E:\Stream\Data",
-        VIEWER = @"E:\Stream\Data\Viewers"
-    };
+    private string pathLOG = @"E:\Stream\Logs\" + DateTime.Now.ToShortDateString() + ".log";
+    private string pathTXT = @"E:\Stream\Commands\";
+    private string pathSFX = @"E:\Stream\Sounds\";
+    private string pathGFX = @"E:\Stream\Gifs\";
+    private string pathDATA = @"E:\Stream\Data\";
+    private string pathVIEWER = @"E:\Stream\Data\Viewers\";
 
-    private bool canPlayCommand = true;
+    private DateTime canPlayCommand = DateTime.Now;
 
     private string user, userID, message;
     private bool isModerator;
 
     public bool Execute() {
         // Start by setting the received message variables
-        user = args["user"];
-        userID = args["userId"];
-        message = args["message"];
-        isModerator = (args["isModerator"].ToLower() == "true") ? true : false;
+        user = args["user"].ToString();
+        userID = args["userId"].ToString();
+        message = args["message"].ToString();
+        isModerator = (args["isModerator"].ToString().ToLower() == "true") ? true : false;
+
+        Log("user: " + user);
+        Log("userID: " + userID);
+        Log("message: " + message);
 
         // Checks if it's a command
         if (message.StartsWith("!")) {
-            string[] arguments = message.Split(" ");
+            string[] arguments = message.Split(' ');
             string command = arguments[0].Replace("!","");
+            int millisecondsToAdd = 0;
 
-            if (File.Exists(Paths.TXT + command + ".txt") && command != "mod") {
+            Log("command: " + command);
+            
+            #region TXT
+            Log(pathTXT + command + ".txt");
+            Log(pathTXT + @"mod\" + command + ".txt");
+            if (File.Exists(pathTXT + command + ".txt") && command != "mod") {
                 // Is a TXT command
-                ReadCommand(Paths.TXT + command + ".txt");
+                ReadCommand(pathTXT + command + ".txt");
             }
-            else if (Directory.Exists(Paths.TXT + command)) {
+            #endregion
+            #region Random TXT
+            else if (Directory.Exists(pathTXT + command)) {
                 // Is a TXT command but runs a random file in that folder
                 Random r = new Random();
-                string[] cmds = Directory.GetFiles(Paths.TXT + command);
+                string[] cmds = Directory.GetFiles(pathTXT + command);
                 int cmdToExecute = r.Next(cmds.Length);
 
-                ReadCommand(Paths.TXT + command + @"\" + cmds[cmdToExecute] + ".txt");
+                ReadCommand(pathTXT + command + @"\" + cmds[cmdToExecute] + ".txt");
             }
-            else if (File.Exists(Paths.TXT + @"mod\" + command + ".txt") && isModerator) {
+            #endregion
+            #region Moderator Only TXT
+            // Moderator only commands
+            else if (File.Exists(pathTXT + @"mod\" + command + ".txt") && isModerator) {
                 // Is a TXT command but runs a random file in that folder
             }
-            else if (File.Exists(Paths.SFX + command + ".txt")) {
-                // Is a SFX command
-            }
-            else if (Directory.Exists(Paths.SFX + command)) {
-                // Is a SFX command but runs a random file in that folder
-                Random r = new Random();
-                string[] cmds = Directory.GetFiles(Paths.SFX + command);
-                int cmdToExecute = r.Next(cmds.Length);
-            }
-            else if (File.Exists(Paths.GFX + command + ".txt")) {
-                // Is a GFX command
+            #endregion
+
+            Log("now: " + DateTime.Now.ToString());
+            Log("time: " + canPlayCommand.ToString());
+
+            if (DateTime.Now >= canPlayCommand) {
+                #region SFX
+                if (File.Exists(pathSFX + command + ".mp3")) {
+                    // Is a SFX command
+                    millisecondsToAdd = GetDuration(pathSFX + command + ".mp3");
+                }
+                #endregion
+                #region Random SFX
+                else if (Directory.Exists(pathSFX + command)) {
+                    // Is a SFX command but runs a random file in that folder
+                    Random r = new Random();
+                    string[] cmds = Directory.GetFiles(pathSFX + command);
+                    int cmdToExecute = r.Next(cmds.Length);
+                    millisecondsToAdd = GetDuration(cmds[cmdToExecute]);
+                }
+                #endregion
+                #region GFX
+                else if (File.Exists(pathGFX + command + ".txt")) {
+                    // Is a GFX command
+                }
+                #endregion
+
+                // Determines when the next command can be executed
+                canPlayCommand = DateTime.Now.AddMilliseconds(millisecondsToAdd);
             }
         }
+
+        return true;
     }
 
-    private ReadCommand(string cmdFile) {
+    private void ReadCommand(string cmdFile) {
+        Log("Command received");
         bool hasOutput = true;
         string[] lines = File.ReadAllLines(cmdFile);
 
         foreach(string l in lines) {
-            if (l.Contains("{user}")) { l.Replace("{user}", user); }
+            if (l.Contains("{user}")) {
+                l.Replace("{user}", user);
+                Log("  {user} -> " + user);
+            }
+            if (l.Contains("{noOutput")) {
+                hasOutput = false;
+                Log("  No output");
+            }
+            if (l.Contains("{w}")) {
+                int t = Int32.Parse(l.Replace("{w}", ""));
+                Log("  Wait " + t.ToString() + "ms");
+                CPH.Wait(t);
+                hasOutput = false;
+            }
 
             if (hasOutput) {
-                //CPH. 
+                Log("    Sending message: " + l);
+                //CPH.SendYouTubeMessage(l);
+                CPH.SendMessage(l);
             }
         }
+    }
+
+    // Returns video duration in milliseconds
+    private int GetDuration(string path)
+    {
+        var tfile = TagLib.File.Create(path);
+        TimeSpan duration = tfile.Properties.Duration;
+        return duration.Milliseconds + (duration.Seconds * 1000);
+    }
+
+    private void Log(string line) {
+        //using(TextWriter tw = new StreamWriter(pathLOG, true)) {
+        //    tw.WriteLine(DateTime.Now.ToShortTimeString() + " | " + line);
+        //}
+        File.AppendAllText(pathLOG, DateTime.Now.ToShortTimeString() + " | " + line + "\n");
+        //using (StreamWriter writer = new StreamWriter(pathLOG, true)) {
+        //    writer.WriteLine(DateTime.Now.ToShortTimeString() + " | " + line);
+        //}
     }
 
     /*
