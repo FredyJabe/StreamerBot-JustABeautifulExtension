@@ -12,8 +12,6 @@ public class CPHInline
     private string pathDATA = @"E:\Stream\Data\";
     private string pathVIEWER = @"E:\Stream\Data\Viewers\";
 
-    private DateTime canPlayCommand = DateTime.Now;
-
     private string user, userID, message;
     private bool isModerator;
 
@@ -24,21 +22,13 @@ public class CPHInline
         message = args["message"].ToString();
         isModerator = (args["isModerator"].ToString().ToLower() == "true") ? true : false;
 
-        Log("user: " + user);
-        Log("userID: " + userID);
-        Log("message: " + message);
-
         // Checks if it's a command
         if (message.StartsWith("!")) {
             string[] arguments = message.Split(' ');
             string command = arguments[0].Replace("!","");
             int millisecondsToAdd = 0;
-
-            Log("command: " + command);
             
             #region TXT
-            Log(pathTXT + command + ".txt");
-            Log(pathTXT + @"mod\" + command + ".txt");
             if (File.Exists(pathTXT + command + ".txt") && command != "mod") {
                 // Is a TXT command
                 ReadCommand(pathTXT + command + ".txt");
@@ -61,14 +51,14 @@ public class CPHInline
             }
             #endregion
 
-            Log("now: " + DateTime.Now.ToString());
-            Log("time: " + canPlayCommand.ToString());
-
-            if (DateTime.Now >= canPlayCommand) {
+            if (DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand")) >= 0) {
                 #region SFX
-                if (File.Exists(pathSFX + command + ".mp3")) {
+                string sfx = pathSFX + command + ".mp3";
+                string gfx = pathGFX + command + ".mp4";
+                if (File.Exists(sfx)) {
                     // Is a SFX command
-                    millisecondsToAdd = GetDuration(pathSFX + command + ".mp3");
+                    millisecondsToAdd = GetDuration(sfx);
+                    CPH.PlaySound(sfx);
                 }
                 #endregion
                 #region Random SFX
@@ -78,16 +68,24 @@ public class CPHInline
                     string[] cmds = Directory.GetFiles(pathSFX + command);
                     int cmdToExecute = r.Next(cmds.Length);
                     millisecondsToAdd = GetDuration(cmds[cmdToExecute]);
+                    CPH.PlaySound(cmds[cmdToExecute]);
                 }
                 #endregion
                 #region GFX
-                else if (File.Exists(pathGFX + command + ".txt")) {
+                else if (File.Exists(gfx)) {
                     // Is a GFX command
+                    int duration = GetDuration(gfx);
+
+                    CPH.ObsSetBrowserSource("Component Overlay Effects", "Gifs", gfx);
+                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "Gifs", true);
+                    CPH.Wait(duration);
+                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "Gifs", false);
+                    millisecondsToAdd = duration;
                 }
                 #endregion
 
                 // Determines when the next command can be executed
-                canPlayCommand = DateTime.Now.AddMilliseconds(millisecondsToAdd);
+                CPH.SetGlobalVar("canPlayCommand", DateTime.Now.AddMilliseconds(millisecondsToAdd));
             }
         }
 
@@ -123,6 +121,19 @@ public class CPHInline
         }
     }
 
+    // Returns the cooldown for a specific command
+    private int GetCooldown(string command) {
+        int retVal = 0;
+        string[] cmds = File.ReadAllLines(pathDATA + "cooldowns.txt");
+        foreach(string l in cmds) {
+            if (l.Contains(command)) {
+                retVal = int.Parse(l.Split('=')[1]);
+                break;
+            }
+        }
+        return retVal;
+    }
+
     // Returns video duration in milliseconds
     private int GetDuration(string path)
     {
@@ -132,14 +143,9 @@ public class CPHInline
     }
 
     private void Log(string line) {
-        //using(TextWriter tw = new StreamWriter(pathLOG, true)) {
-        //    tw.WriteLine(DateTime.Now.ToShortTimeString() + " | " + line);
-        //}
         File.AppendAllText(pathLOG, DateTime.Now.ToShortTimeString() + " | " + line + "\n");
-        //using (StreamWriter writer = new StreamWriter(pathLOG, true)) {
-        //    writer.WriteLine(DateTime.Now.ToShortTimeString() + " | " + line);
-        //}
     }
+}
 
     /*
 
@@ -153,13 +159,6 @@ public class CPHInline
             // Then check the command
             if (wholeMessage.StartsWith("!"))
             {
-                string cmd = wholeMessage.Split(' ')[0].Substring(1).ToLower();
-                commands = Directory.GetFiles(commandsFolder);
-                gifs = Directory.GetFiles(gifsFolder);
-                var snds = new List<string>();
-                snds.AddRange(Directory.GetFiles(soundsFolder));
-                snds.AddRange(Directory.GetDirectories(soundsFolder));
-                sounds = snds.ToArray();
 
                 // Text commands
                 AddLog("Loading chat commands");
@@ -174,113 +173,7 @@ public class CPHInline
                 for (var i = 0; i < gifs.Length; i++) gifs[i] = gifs[i].Split('\\')[3].Split('.')[0];
                 AddLog($"Loaded {commands.Length + sounds.Length + gifs.Length} commands");
 
-                // Checks if the command actually exists
-                if (modo && File.Exists($"{commandsFolder}\\mod\\{cmd}.txt"))
-                {
-                    AddLog("Mod command used");
-                    AddLog($"  {cmd}");
-                    ReadCommand($"{commandsFolder}\\mod\\{cmd}.txt", wholeMessage);
-                }
-                else if (Array.IndexOf(commands, cmd) >= 0)
-                {
-                    AddLog("Command used");
-                    AddLog($"  {cmd}");
-                    ReadCommand($"{commandsFolder}\\{cmd}.txt", wholeMessage);
-                }
-                // Commandes sonores
-                else if (Array.IndexOf(sounds, cmd) >= 0)
-                {
-                    AddLog("Sound played");
-                    AddLog($"  {cmd}");
-                    if (canPlaySoundOrGif)
-                    {
-                        canPlaySoundOrGif = false;
-                        switch (cmd)
-                        {
-                            case "plaisir":
-                                if (canPlayPlaisir)
-                                {
-                                    canPlayPlaisir = false;
-                                    CPH.PlaySound($"{soundsFolder}\\{cmd}.ogg", 0.3F, true);
-                                    canPlaySoundOrGif = true;
-
-                                    plaisirCooldown.Start();
-
-                                    //CPH.Wait(300000);
-                                    //canPlayPlaisir = true;
-                                }
-                                //else CPH.SendMessage("/me plaisir est en cooldown!");
-                                else
-                                {
-                                    SendToChat("Plaisir est en cooldown.");
-                                }
-                                break;
-                            default:
-                                if (Directory.Exists($"{soundsFolder}\\{cmd}"))
-                                {
-                                    CPH.PlaySoundFromFolder($"{soundsFolder}\\{cmd}", 0.5F, false, true);
-                                }
-                                else
-                                {
-                                    // On vérifie les multiples extensions
-                                    string[] exts = { "ogg","mp3", "wav" };
-                                    string ext = "";
-                                    foreach(string e in exts)
-                                    {
-                                        if (File.Exists($"{soundsFolder}\\{cmd}.{e}"))
-                                        {
-                                            ext = e;
-                                            break;
-                                        }
-                                    }
-
-                                    CPH.PlaySound($"{soundsFolder}\\{cmd}.{ext}", 0.5F, true);
-                                }
-
-                                break;
-                        }
-
-                        canPlaySoundOrGif = true;
-                    }
-                    //else CPH.SendMessage("/me un sfx/gfx est déjà en cours.");
-                    else
-                    {
-                        SendToChat("Un SFX/GFX est déjà en cours.");
-                    }
-                }
-                else if (Array.IndexOf(gifs, cmd) >= 0)
-                {
-                    if (canPlaySoundOrGif)
-                    {
-                        // On vérifie les multiples extensions
-                        string[] exts = { "webm","mp4","avi" };
-                        string ext = "";
-                        foreach(string e in exts)
-                        {
-                            if (File.Exists($"{gifsFolder}\\{cmd}.{e}"))
-                            {
-                                ext = e;
-                                break;
-                            }
-                        }
-
-                        canPlaySoundOrGif = false;
-                        CPH.ObsSetBrowserSource("Component Overlay Effects", "Gifs", $"{gifsFolder}\\{cmd}.{ext}");
-                        CPH.ObsSetSourceVisibility("Component Overlay Effects", "Gifs", true);
-                        CPH.Wait(GetVideoDuration($"{gifsFolder}\\{cmd}.{ext}"));
-                        CPH.ObsSetSourceVisibility("Component Overlay Effects", "Gifs", false);
-                        canPlaySoundOrGif = true;
-                    }
-                    //else CPH.SendMessage("/me un sfx/gfx est déjà en cours.");
-                    else
-                    {
-                        SendToChat("Un SFX/GFX est déjà en cours.");
-                    }
-                }
-
-                AddLog("Command execution complete");
-            }
-            else
+                
             {
                 // Incremente les viewer points si c'est pas une commande
                 UpdateUserPoints(1);
@@ -686,4 +579,3 @@ public class CPHInline
         }
     }
     */
-}
