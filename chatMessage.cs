@@ -93,28 +93,23 @@ public class CPHInline
     }
 
     private void ReadCommand(string cmdFile) {
-        Log("Command received");
         bool hasOutput = true;
         string[] lines = File.ReadAllLines(cmdFile);
 
         foreach(string l in lines) {
             if (l.Contains("{user}")) {
                 l.Replace("{user}", user);
-                Log("  {user} -> " + user);
             }
             if (l.Contains("{noOutput")) {
                 hasOutput = false;
-                Log("  No output");
             }
             if (l.Contains("{w}")) {
                 int t = Int32.Parse(l.Replace("{w}", ""));
-                Log("  Wait " + t.ToString() + "ms");
                 CPH.Wait(t);
                 hasOutput = false;
             }
 
             if (hasOutput) {
-                Log("    Sending message: " + l);
                 //CPH.SendYouTubeMessage(l);
                 CPH.SendMessage(l);
             }
