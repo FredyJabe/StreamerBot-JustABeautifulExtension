@@ -51,7 +51,7 @@ public class CPHInline
             }
             #endregion
 
-            if (DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand")) >= 0) {
+            if (DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand")) >= 0 && DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand" + command)) >= 0) {
                 #region SFX
                 string sfx = pathSFX + command + ".mp3";
                 string gfx = pathGFX + command + ".mp4";
@@ -86,6 +86,7 @@ public class CPHInline
 
                 // Determines when the next command can be executed
                 CPH.SetGlobalVar("canPlayCommand", DateTime.Now.AddMilliseconds(millisecondsToAdd));
+                CPH.SetGlobalVar("canPlayCommand" + command, DateTime.Now.AddMilliseconds(millisecondsToAdd).AddSeconds(GetCooldown(command)));
             }
         }
 
