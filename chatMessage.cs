@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Threading;
@@ -111,8 +111,7 @@ public class CPHInline
             }
 
             if (hasOutput) {
-                //CPH.SendYouTubeMessage(l);
-                CPH.SendMessage(l);
+                CPH.SendYouTubeMessage(l);
             }
         }
     }

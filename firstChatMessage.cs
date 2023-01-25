@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 
+/*
 public class CPHInline
 {
 	public bool Execute()
@@ -20,3 +21,4 @@ public class CPHInline
 		return true;
 	}
 }
+*/
