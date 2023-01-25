@@ -1,23 +1,25 @@
 using System;
 using System.IO;
-using System.Collections.Generic;
 
-/*
 public class CPHInline
 {
+	private string likeFile = @"E:\Stream\Data\likes.txt";
+	private string pathALERT = @"E:\Stream\Alertes\";
+
 	public bool Execute()
 	{
-		//string follower = args["user"].ToString();
-		string viewers = args["viewCount"].ToString();
-        int messageToShow = 0;
+		int likes = int.Parse(args["likeCount"].ToString());
+		int oldLikes = int.Parse(File.ReadAllText(likeFile));
 
-		// On écrit le nombre de viewers actuel pour pouvoir s'en servir sur le stream
-        using (StreamWriter writer = new StreamWriter(@"E:\Stream\Data\viewerCount.txt"))
-        {
-            writer.WriteLine(viewers);
+		// Writes the new like count
+        using (StreamWriter writer = new StreamWriter(likeFile)) {
+            writer.WriteLine(likes);
         }
+
+		if (oldLikes < likes) {
+			CPH.PlaySound(pathALERT + "like.wav");
+		}
 
 		return true;
 	}
 }
-*/

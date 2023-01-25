@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-/*
+
 public class CPHInline
 {
 	public bool Execute()
@@ -11,14 +11,12 @@ public class CPHInline
 		string userName = args["user"].ToString();
 		string file = @"E:\Stream\Alertes\Viewers\" + user + ".mp3";
 
-		if (File.Exists(file))
-		{
+		if (File.Exists(file)) {
 			CPH.PlaySound(file, 0.5F, true);
 		}
 		
-		CPH.AddToCredits("Viewers",userName);
+		CPH.AddToCredits("viewers", userName, false);
 
 		return true;
 	}
 }
-*/
