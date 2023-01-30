@@ -198,10 +198,23 @@ public class CPHInline
         string file = pathVIEWER + $"{uid}.txt";
         int retVal = 0;
         if (File.Exists(file)) {
-            string value = File.ReadAllText(file);
+            string value = File.ReadAllLines(file)[0];
             retVal = int.Parse(value);
         }
         return retVal;
+    }
+
+    // Updates the amount of points a user have
+    private void UpdateUserPoints(string uid, int pts) {
+        string file = pathVIEWER + $"{uid}.txt";
+
+        // If the user exists, read his points and update
+        int points = (File.Exists(file)) ? Int32.Parse(File.ReadAllLines(userFile)[0]) + pts : pts;
+        
+        // And saves the file again
+        using (StreamWriter writer = new StreamWriter(userFile)) {
+            writer.WriteLine(points.ToString());
+        }
     }
 
     private void Log(string line) {
