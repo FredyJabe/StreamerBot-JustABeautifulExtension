@@ -54,7 +54,13 @@ public class CPHInline
             }
             #endregion
 
-            if (DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand")) >= 0 && DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand" + command)) >= 0) {
+            int price = GetCommandPrice(command);
+
+            if (DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand")) >= 0 && DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand" + command)) >= 0 && price <= GetUserPoints(userID)) {
+                
+                // Charges the user X amount of points to call a command
+                UpdateUserPoints(userID, -price);
+
                 #region SFX
                 string sfx = pathSFX + command + ".mp3";
                 string gfx = pathGFX + command + ".mp4";
@@ -191,6 +197,27 @@ public class CPHInline
         var tfile = TagLib.File.Create(path);
         TimeSpan duration = tfile.Properties.Duration;
         return duration.Milliseconds + (duration.Seconds * 1000);
+    }
+
+    // Reads the price for a certain command
+    private int GetCommandPrice(string cmd) {
+        int retVal = 0;
+
+        try {
+            string[] cmds = File.ReadAllLines(pathDATA + "prices.txt");
+            foreach(string l in cmds) {
+                if (l.Contains(command)) {
+                    retVal = int.Parse(l.Split('=')[1]);
+                    break;
+                }
+            }
+        }
+        catch (Exception e) {
+            Log("ERROR: " + command);
+            Log(e.ToString());
+        }
+
+        return retVal;
     }
 
     // Returns the amount of points the user have
