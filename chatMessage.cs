@@ -51,6 +51,7 @@ public class CPHInline
             // Moderator only commands
             else if (File.Exists(pathTXT + @"mod\" + command + ".txt") && isModerator) {
                 // Is a TXT command but runs a random file in that folder
+                ReadCommand(pathTXT + @"mod\" + command + ".txt");
             }
             #endregion
 
@@ -111,15 +112,18 @@ public class CPHInline
         for (int l=0; l<lines.Length; l++) {
             string output = lines[l];
 
-            // Returns the user name
+            // Managing all possible variables in commands
+            #region sender - Returns the user name
             if (output.Contains("{sender}")) {
                 output = output.Replace("{sender}", user);
             }
-            // Prevents the command to output anything
+            #endregion
+            #region noOutput - Removes any output the command has
             if (output.Contains("{noOutput}")) {
                 hasOutput = false;
             }
-            // Makes the command wait for X milliseconds
+            #endregion
+            #region w - Wait for X milliseconds
             if (output.Contains("{w}")) {
                 Log("WAIT");
                 int t = Int32.Parse(output.Replace("{w}", ""));
@@ -127,43 +131,86 @@ public class CPHInline
                 CPH.Wait(t);
                 output = "";
             }
-            // Reads and returns user points
+            #endregion
+            #region points - Reads and returns user points
             if (output.Contains("{points}")) {
                 output = output.Replace("{points}", GetUserPoints(userID).ToString());
             }
-            // The FIRST ONE
+            #endregion
+            #region first - The FIRST ONE
             if (output.Contains("{first}")) {
                 if (CPH.GetGlobalVar<string>("first") == null) {
                      CPH.SetGlobalVar("first", user);
                      CPH.AddToCredits("first", user, false);
                 }
             }
+            #endregion
+            #region massfart - MOD - Farts a bunch of time depending on the amount of viewers
+            if (output.Contains("{massfart}")) {
+                int amount = Int32.Parse(File.ReadAllLines(pathDATA + "viewerCount.txt")[0]) * 2;
+
+                for(var i=0; i<amount; i++)
+                {
+                    CPH.PlaySoundFromFolder($"{pathSFX}fart");
+                    CPH.Wait(CPH.Between(250, 1000));
+                }
+            }
+            #endregion
 
             // Lists stuff
+            #region cmds - Lists all available text commands
             if (output.Contains(@"{cmds}")) {
                 output = output.Replace(@"{cmds}", " ");
                 string[] cmds = Directory.GetFiles(pathTXT, "*.txt");
                 foreach(string c in cmds) {
                     int i = c.Split('\\').Length;
-                    output += "!" + c.Split('\\')[i-1].Replace(".txt"," ");
+                    output += c.Split('\\')[i-1].Replace(".txt"," ");
                 }
             }
+            #endregion
+            #region sfx - Lists all available SFXs
             if (output.Contains("{sfx}")) {
                 output = output.Replace("{sfx}", " ");
                 string[] cmds = Directory.GetFiles(pathSFX);
                 foreach(string c in cmds) {
                     int i = c.Split('\\').Length;
-                    output += "!" + c.Split('\\')[i-1].Replace(".mp3"," ");
+                    output += c.Split('\\')[i-1].Replace(".mp3"," ");
                 }
             }
+            #endregion
+            #region gfx - Lists all available GFXs
             if (output.Contains("{gfx}")) {
                 output = output.Replace("{gfx}", " ");
                 string[] cmds = Directory.GetFiles(pathGFX);
                 foreach(string c in cmds) {
                     int i = c.Split('\\').Length;
-                    output += "!" + c.Split('\\')[i-1].Replace(".mp4"," ");
+                    output += c.Split('\\')[i-1].Replace(".mp4"," ");
                 }
             }
+            #endregion
+
+            // Outputs ALL available commands for users to a textfile
+            #region outputCommandList - DEBUG - Outputs every commands with cooldowns and prices
+            if (output.Contains("{outputTextfile}")) {
+                hasOutput = false;
+                output = "";
+
+                string[] folders = { pathTXT, pathSFX, pathGFX };
+                foreach(string p in folders) {
+                    string[] cmds = Directory.GetFiles(p);
+                    output += "#### " + p + " ####\n";
+                    foreach(string c in cmds) {
+                        int i = c.Split('\\').Length;
+                        string cmd = c.Split('\\')[i-1].Split('.')[0];
+                        string price = GetCommandPrice(cmd).ToString();
+                        string cd = GetCooldown(cmd).ToString();
+                        output += cmd + $" (cd:{cd} p:{price})\n";
+                    }
+                }
+
+                File.WriteAllText(pathDATA + "TEST.txt", output);
+            }
+            #endregion
 
             if (hasOutput) {
                 CPH.SendYouTubeMessage(output);
