@@ -134,8 +134,8 @@ public class CPHInline
             // The FIRST ONE
             if (output.Contains("{first}")) {
                 if (CPH.GetGlobalVar<string>("first") == null) {
-                     CPH.SetGlobalVar("first", sender);
-                     CPH.AddToCredits("first", sender, false);
+                     CPH.SetGlobalVar("first", user);
+                     CPH.AddToCredits("first", user, false);
                 }
             }
 
@@ -200,7 +200,7 @@ public class CPHInline
     }
 
     // Reads the price for a certain command
-    private int GetCommandPrice(string cmd) {
+    private int GetCommandPrice(string command) {
         int retVal = 0;
 
         try {
@@ -236,10 +236,10 @@ public class CPHInline
         string file = pathVIEWER + $"{uid}.txt";
 
         // If the user exists, read his points and update
-        int points = (File.Exists(file)) ? Int32.Parse(File.ReadAllLines(userFile)[0]) + pts : pts;
+        int points = (File.Exists(file)) ? Int32.Parse(File.ReadAllLines(file)[0]) + pts : pts;
         
         // And saves the file again
-        using (StreamWriter writer = new StreamWriter(userFile)) {
+        using (StreamWriter writer = new StreamWriter(file)) {
             writer.WriteLine(points.ToString());
         }
     }
