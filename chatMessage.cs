@@ -151,7 +151,13 @@ public class CPHInline
 
                 for(var i=0; i<amount; i++)
                 {
-                    CPH.PlaySoundFromFolder($"{pathSFX}fart");
+                    // Is a SFX command but runs a random file in that folder
+                    Random r = new Random();
+                    string[] fartSounds = Directory.GetFiles(pathSFX + "fart");
+                    int cmdToExecute = r.Next(fartSounds.Length);
+                    CPH.LogDebug(fartSounds[cmdToExecute]);
+                    CPH.PlaySound(fartSounds[cmdToExecute]);
+
                     CPH.Wait(CPH.Between(250, 1000));
                 }
             }

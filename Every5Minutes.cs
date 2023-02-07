@@ -11,7 +11,7 @@ public class CPHInline
         List<Dictionary<string,object>> users = (List<Dictionary<string,object>>)args["users"];
 
         // On écrit le nombre de viewers actuel pour pouvoir s'en servir sur le stream
-        using (StreamWriter writer = new StreamWriter(@"E:\Stream\Data\viewerCount.txt")) {
+        using (StreamWriter writer = new StreamWriter(@"D:\Stream\Data\viewerCount.txt")) {
             writer.WriteLine(users.Count);
         }
 
