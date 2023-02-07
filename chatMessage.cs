@@ -167,9 +167,18 @@ public class CPHInline
                      UpdateUserPoints(userID, 15);
                 }
             }
-            #region note - Let's viewers save notes for the streamer
-            // TODO Bring back the notes system
             #endregion
+            #region note - Let's viewers save notes for the streamer
+            if (output.Contains("{note}")) {
+                string txt = "";
+
+                for(var i = 1; i < arguments.Length; i ++) {
+                    txt += arguments[i] + " ";
+                }
+
+                using (StreamWriter writer = new StreamWriter(pathDATA + "notes.txt", true))
+                    writer.WriteLine(user + ": " + txt);
+            }
             #endregion
             #region massfart - MOD - Farts a bunch of time depending on the amount of viewers
             if (output.Contains("{massfart}")) {
@@ -190,6 +199,7 @@ public class CPHInline
             #endregion
             #region resetCD - MOD - Resets the cooldown of a specific command
             if (output.Contains("{resetcd}")) {
+
                 // TODO A mod command to be able to reset a specific command cooldown
             }
             #endregion
@@ -207,6 +217,7 @@ public class CPHInline
             #endregion
             #region sfx - Lists all available SFXs
             if (output.Contains("{sfx}")) {
+                // FIXME Don't forget to add folders to the list (for random SFXs)
                 output = output.Replace("{sfx}", " ");
                 string[] cmds = Directory.GetFiles(pathSFX);
                 foreach(string c in cmds) {
