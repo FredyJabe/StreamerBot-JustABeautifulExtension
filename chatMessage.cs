@@ -132,6 +132,12 @@ public class CPHInline
                 output = "";
             }
             #endregion
+            #region r - Random from 1 to X
+            if (output.Contains("{r}")) {
+                int randomMax = Int32.Parse(output.Replace("{r}", ""));
+                output = CPH.Between(1, randomMax).ToString();
+            }
+            #endregion
             #region points - Reads and returns user points
             if (output.Contains("{points}")) {
                 output = output.Replace("{points}", GetUserPoints(userID).ToString());
@@ -142,6 +148,7 @@ public class CPHInline
                 if (CPH.GetGlobalVar<string>("first") == null) {
                      CPH.SetGlobalVar("first", user);
                      CPH.AddToCredits("first", user, false);
+                     UpdateUserPoints(userID, 15);
                 }
             }
             #endregion
@@ -192,6 +199,26 @@ public class CPHInline
                     int i = c.Split('\\').Length;
                     output += c.Split('\\')[i-1].Replace(".mp4"," ");
                 }
+            }
+            #endregion
+
+            // Custom commands asked by viewers
+            #region roulette - 6 chances, 1 bullet
+            if (output.Contains("{roulette}")) {
+                output = output.Replace("{roulette}", "");
+
+                int chanceRoulette = CPH.GetGlobalVar<int>("chanceRoulette");
+
+                if (CPH.Between(1, chanceRoulette) == 1) {
+                    chanceRoulette = 6;
+                    output = $"explose la tronche de {user}!!";
+                }
+                else {
+                    chanceRoulette --;
+                    output = $"tire à blanc... il reste {chanceRoulette} chances...";
+                }
+
+                CPH.SetGlobalVar("chanceRoulette", chanceRoulette);
             }
             #endregion
 
@@ -297,6 +324,7 @@ public class CPHInline
         }
     }
 
+    // Logs a line
     private void Log(string line) {
         File.AppendAllText(pathLOG, DateTime.Now.ToShortTimeString() + " | " + line + "\n");
     }
