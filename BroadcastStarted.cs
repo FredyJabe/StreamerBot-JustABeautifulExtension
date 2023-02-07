@@ -20,6 +20,10 @@ public class CPHInline
             CPH.AddToCredits("supporters", l, false);
         }
 
+        // Resets the first and the roulette
+        CPH.SetGlobalVar("first", null);
+        CPH.SetGlobalVar("chanceRoulette", 6);
+
 		return true;
 	}
 }
