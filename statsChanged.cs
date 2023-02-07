@@ -3,8 +3,8 @@ using System.IO;
 
 public class CPHInline
 {
-	private string likeFile = @"E:\Stream\Data\likes.txt";
-	private string pathALERT = @"E:\Stream\Alertes\";
+	private string likeFile = @"D:\Stream\Data\likes.txt";
+	private string pathALERT = @"D:\Stream\Alertes\";
 
 	public bool Execute()
 	{

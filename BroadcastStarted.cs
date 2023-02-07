@@ -16,7 +16,7 @@ public class CPHInline
         CPH.ResetCredits();
 
         // Adds all my supporters to the credits
-        foreach( string l in File.ReadAllLines(@"E:\Stream\Data\supporters.txt")) {
+        foreach( string l in File.ReadAllLines(@"D:\Stream\Data\supporters.txt")) {
             CPH.AddToCredits("supporters", l, false);
         }
 

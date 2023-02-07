@@ -5,12 +5,12 @@ using System.Threading;
 
 public class CPHInline
 {
-    private string pathLOG = @"E:\Stream\Logs\" + DateTime.Now.ToShortDateString() + ".log";
-    private string pathTXT = @"E:\Stream\Commands\";
-    private string pathSFX = @"E:\Stream\Sounds\";
-    private string pathGFX = @"E:\Stream\Gifs\";
-    private string pathDATA = @"E:\Stream\Data\";
-    private string pathVIEWER = @"E:\Stream\Data\Viewers\";
+    private string pathLOG = @"D:\Stream\Logs\" + DateTime.Now.ToShortDateString() + ".log";
+    private string pathTXT = @"D:\Stream\Commands\";
+    private string pathSFX = @"D:\Stream\Sounds\";
+    private string pathGFX = @"D:\Stream\Gifs\";
+    private string pathDATA = @"D:\Stream\Data\";
+    private string pathVIEWER = @"D:\Stream\Data\Viewers\";
 
     private string user, userID, message;
     private bool isModerator;
