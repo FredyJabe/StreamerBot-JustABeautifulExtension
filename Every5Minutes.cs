@@ -23,6 +23,8 @@ public class CPHInline
             // If the user exists, read his points and update
             int points = (File.Exists(userFile)) ? Int32.Parse(File.ReadAllLines(userFile)[0]) + 5 : 5;
 
+            CPH.LogDebug($"USER {id} now has {points}!");
+
             // And saves the file again
             using (StreamWriter writer = new StreamWriter(userFile)) {
                 writer.WriteLine(points.ToString());
