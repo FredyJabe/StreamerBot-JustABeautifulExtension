@@ -34,7 +34,7 @@ public class CPHInline
             #region TXT
             if (File.Exists(pathTXT + command + ".txt") && command != "mod") {
                 // Is a TXT command
-                ReadCommand(pathTXT + command + ".txt");
+                ReadCommand(pathTXT + command + ".txt", arguments);
             }
             #endregion
             #region Random TXT
@@ -44,14 +44,14 @@ public class CPHInline
                 string[] cmds = Directory.GetFiles(pathTXT + command);
                 int cmdToExecute = r.Next(cmds.Length);
 
-                ReadCommand(pathTXT + command + @"\" + cmds[cmdToExecute] + ".txt");
+                ReadCommand(pathTXT + command + @"\" + cmds[cmdToExecute] + ".txt", arguments);
             }
             #endregion
             #region Moderator Only TXT
             // Moderator only commands
             else if (File.Exists(pathTXT + @"mod\" + command + ".txt") && isModerator) {
                 // Is a TXT command but runs a random file in that folder
-                ReadCommand(pathTXT + @"mod\" + command + ".txt");
+                ReadCommand(pathTXT + @"mod\" + command + ".txt", arguments);
             }
             #endregion
 
@@ -104,7 +104,7 @@ public class CPHInline
         return true;
     }
 
-    private void ReadCommand(string cmdFile) {
+    private void ReadCommand(string cmdFile, string[] arguments) {
         bool hasOutput = true;
         string[] lines = File.ReadAllLines(cmdFile);
 
@@ -113,6 +113,16 @@ public class CPHInline
             string output = lines[l];
 
             // Managing all possible variables in commands
+            #region args - Returns a specific argument
+            for(var i = 1; i <= (arguments.Length - 1); i ++) {
+                if (output.Contains("{" + i.ToString() + "}")) {
+                    output = output.Replace("{" + i.ToString() + "}", arguments[i]);
+                }
+            }
+            #endregion
+            #region rom - Returns the rest of the message
+            // TODO Ability to use/output the whole message without the commands
+            #endregion
             #region sender - Returns the user name
             if (output.Contains("{sender}")) {
                 output = output.Replace("{sender}", user);
@@ -151,6 +161,9 @@ public class CPHInline
                      UpdateUserPoints(userID, 15);
                 }
             }
+            #region note - Let's viewers save notes for the streamer
+            // TODO Bring back the notes system
+            #endregion
             #endregion
             #region massfart - MOD - Farts a bunch of time depending on the amount of viewers
             if (output.Contains("{massfart}")) {
@@ -167,6 +180,11 @@ public class CPHInline
 
                     CPH.Wait(CPH.Between(250, 1000));
                 }
+            }
+            #endregion
+            #region resetCD - MOD - Resets the cooldown of a specific command
+            if (output.Contains("{resetcd}")) {
+                // TODO A mod command to be able to reset a specific command cooldown
             }
             #endregion
 
