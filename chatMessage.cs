@@ -200,8 +200,9 @@ public class CPHInline
             #endregion
             #region resetCD - MOD - Resets the cooldown of a specific command
             if (output.Contains("{resetcd}")) {
-
-                // TODO A mod command to be able to reset a specific command cooldown
+                if (arguments.Length > 0) {
+                    CPH.SetGlobalVar("canPlayCommand" + arguments[1], DateTime.Now);
+                }
             }
             #endregion
 
