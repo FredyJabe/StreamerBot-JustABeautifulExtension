@@ -114,14 +114,20 @@ public class CPHInline
 
             // Managing all possible variables in commands
             #region args - Returns a specific argument
-            for(var i = 1; i <= (arguments.Length - 1); i ++) {
+            for(var i = 1; i < arguments.Length; i ++) {
                 if (output.Contains("{" + i.ToString() + "}")) {
                     output = output.Replace("{" + i.ToString() + "}", arguments[i]);
                 }
             }
             #endregion
             #region rom - Returns the rest of the message
-            // TODO Ability to use/output the whole message without the commands
+            if (output.Contains("{rom}")) {
+                string rom = "";
+                for(var i = 1; i < arguments.Length; i ++) {
+                    rom += arguments[i] + " ";
+                }
+                output = output.Replace("{rom}", rom);
+            }
             #endregion
             #region sender - Returns the user name
             if (output.Contains("{sender}")) {
