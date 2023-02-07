@@ -205,6 +205,15 @@ public class CPHInline
                 }
             }
             #endregion
+            #region addcmd - MOD - Add a command... FROM A COMMAND
+            // TODO MOD adding commands
+            #endregion
+            #region rmcmd - MOD - Remove a command... FROM A COMMAND
+            // TODO MOD remove commands
+            #endregion
+            #region edtcmd - MOD - Edit a command... FROM A COMMAND
+            // TODO MOD editing commands
+            #endregion
 
             // Lists stuff
             #region cmds - Lists all available text commands
