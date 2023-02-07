@@ -22,7 +22,8 @@ public class CPHInline
         message = args["message"].ToString();
         isModerator = (args["isModerator"].ToString().ToLower() == "true") ? true : false;
 
-        CPH.LogInfo($"{user}: {message}");
+        //CPH.LogInfo($"{user}: {message}");
+        Log($"{user}: {message}");
 
         // Checks if it's a command
         if (message.StartsWith("!")) {
@@ -217,12 +218,13 @@ public class CPHInline
             #endregion
             #region sfx - Lists all available SFXs
             if (output.Contains("{sfx}")) {
-                // FIXME Don't forget to add folders to the list (for random SFXs)
                 output = output.Replace("{sfx}", " ");
-                string[] cmds = Directory.GetFiles(pathSFX);
+                
+                //string[] cmds = Directory.GetFiles(pathSFX);
+                string[] cmds = Directory.GetFileSystemEntries(pathSFX);
                 foreach(string c in cmds) {
                     int i = c.Split('\\').Length;
-                    output += c.Split('\\')[i-1].Replace(".mp3"," ");
+                    output += c.Split('\\')[i-1].Replace(".mp3","") + " ";
                 }
             }
             #endregion
@@ -361,6 +363,11 @@ public class CPHInline
 
     // Logs a line
     private void Log(string line) {
-        File.AppendAllText(pathLOG, DateTime.Now.ToShortTimeString() + " | " + line + "\n");
+        File.AppendAllText(pathLOG, DateTime.Now.ToString("hh:mm tt") + " | " + line + "\n");
+        //ToString("hh:mm tt") ToShortTimeString()
     }
 }
+
+
+
+// TODO get youtube url : string ObsGetSceneItemProperties(string scene, string source, int connection = 0);
