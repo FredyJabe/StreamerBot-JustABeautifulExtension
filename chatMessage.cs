@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Threading;
+using System.Diagnostics;
 
 public class CPHInline
 {
@@ -180,6 +181,12 @@ public class CPHInline
                 using (StreamWriter writer = new StreamWriter(pathDATA + "notes.txt", true))
                     writer.WriteLine(user + ": " + txt);
             }
+            #endregion
+            #region run - Execute a file
+                if (output.Contains("{run}")) {
+                    string file = output.Replace("{run}", "");
+                    //TODO Finish the run function
+                }
             #endregion
             #region massfart - MOD - Farts a bunch of time depending on the amount of viewers
             if (output.Contains("{massfart}")) {
