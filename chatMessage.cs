@@ -14,7 +14,7 @@ public class CPHInline
     private string pathVIEWER = @"D:\Stream\Data\Viewers\";
 
     private string user, userID, message;
-    private bool isModerator;
+    private bool isModerator; 
 
     public bool Execute() {
         // Start by setting the received message variables
