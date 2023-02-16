@@ -301,7 +301,7 @@ public class CPHInline
             #endregion
 
             if (hasOutput) {
-                if (source == 'twitch') {
+                if (source == "twitch") {
                     CPH.SendMessage(output);
                 }
                 else {
