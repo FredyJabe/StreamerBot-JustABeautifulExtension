@@ -13,14 +13,15 @@ public class CPHInline
     private string pathDATA = @"D:\Stream\Data\";
     private string pathVIEWER = @"D:\Stream\Data\Viewers\";
 
-    private string user, userID, message;
-    private bool isModerator;
+    private string user, userID, message, source;
+    private bool isModerator; 
 
     public bool Execute() {
         // Start by setting the received message variables
         user = args["user"].ToString();
         userID = args["userId"].ToString();
         message = args["message"].ToString();
+        source = args["eventSource"].ToString();
         isModerator = (args["isModerator"].ToString().ToLower() == "true") ? true : false;
 
         //CPH.LogInfo($"{user}: {message}");
@@ -304,7 +305,12 @@ public class CPHInline
             #endregion
 
             if (hasOutput) {
-                CPH.SendYouTubeMessage(output);
+                if (source == "twitch") {
+                    CPH.SendMessage(output);
+                }
+                else {
+                    CPH.SendYouTubeMessage(output);
+                }
             }
         }
     }
