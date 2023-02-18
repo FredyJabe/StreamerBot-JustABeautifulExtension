@@ -167,6 +167,10 @@ public class CPHInline
                      CPH.SetGlobalVar("first", user);
                      CPH.AddToCredits("first", user, false);
                      UpdateUserPoints(userID, 15);
+                     output = output.Substring(0, output.IndexOf("{first}"));
+                }
+                else {
+                    output = output.Substring(output.IndexOf("{first}") + 7);
                 }
             }
             #endregion
