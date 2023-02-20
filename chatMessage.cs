@@ -41,7 +41,7 @@ public class CPHInline
             }
             #endregion
             #region Random TXT
-            else if (Directory.Exists(pathTXT + command)) {
+            else if (Directory.Exists(pathTXT + command) && command != "mod") {
                 // Is a TXT command but runs a random file in that folder
                 Random r = new Random();
                 string[] cmds = Directory.GetFiles(pathTXT + command);

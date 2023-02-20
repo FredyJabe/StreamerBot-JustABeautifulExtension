@@ -17,5 +17,7 @@ It's super simple to use, create 5 actions with a single `Execute C# Code` sub-a
 
 Screenshots and more information coming soon
 
+*Don't mind the `dll-stuff` folder, it's a work in progress*
+
 ## Problems?
 If you find any bug, have a feature request or anything like, feel free to open an Issue here on the repo and I'll see what I can do to fix it.
