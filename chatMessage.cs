@@ -63,7 +63,7 @@ public class CPHInline
             if (DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand")) >= 0 && DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand" + command)) >= 0 && price <= GetUserPoints(userID)) {
                 
                 // Charges the user X amount of points to call a command
-                UpdateUserPoints(userID, -price);
+                UpdateUserPoints(userID, -price); 
 
                 #region SFX
                 string sfx = pathSFX + command + ".mp3";
