@@ -71,7 +71,10 @@ public class CPHInline
                 if (File.Exists(sfx)) {
                     // Is a SFX command
                     millisecondsToAdd = GetDuration(sfx);
-                    CPH.PlaySound(sfx);
+                    //CPH.PlaySound(sfx);
+                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", false);
+                    CPH.ObsSetMediaSourceFile("Component Overlay Effects", "SFX", sfx);
+                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", true);
                 }
                 #endregion
                 #region Random SFX 
@@ -82,7 +85,11 @@ public class CPHInline
                     int cmdToExecute = r.Next(cmds.Length);
                     CPH.LogDebug(cmds[cmdToExecute]);
                     millisecondsToAdd = GetDuration(cmds[cmdToExecute]);
-                    CPH.PlaySound(cmds[cmdToExecute]);
+                    //CPH.PlaySound(cmds[cmdToExecute]);
+
+                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", false);
+                    CPH.ObsSetMediaSourceFile("Component Overlay Effects", "SFX", cmds[cmdToExecute]);
+                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", true);
                 }
                 #endregion
                 #region GFX
@@ -90,10 +97,10 @@ public class CPHInline
                     // Is a GFX command
                     int duration = GetDuration(gfx);
 
-                    CPH.ObsSetBrowserSource("Component Overlay Effects", "Gifs", gfx);
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "Gifs", true);
+                    CPH.ObsSetBrowserSource("Component Overlay Effects", "GFX", gfx);
+                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "GFX", true);
                     CPH.Wait(duration);
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "Gifs", false);
+                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "GFX", false);
                     millisecondsToAdd = duration;
                 }
                 #endregion
@@ -391,10 +398,5 @@ public class CPHInline
     // Logs a line
     private void Log(string line) {
         File.AppendAllText(pathLOG, DateTime.Now.ToString("hh:mm tt") + " | " + line + "\n");
-        //ToString("hh:mm tt") ToShortTimeString()
     }
 }
-
-
-
-// TODO get youtube url : string ObsGetSceneItemProperties(string scene, string source, int connection = 0);
