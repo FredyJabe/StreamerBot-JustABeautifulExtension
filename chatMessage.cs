@@ -1,11 +1,17 @@
 ﻿using System;
 using System.IO;
+using System.Net;
+using System.Web;
 using System.Collections.Generic;
 using System.Threading;
 using System.Diagnostics;
 
 public class CPHInline
 {
+    // OPTIONS
+    private string httpHandlerUrl = @"http://127.0.0.1:7474/DoAction";
+    private string actionId = "";
+    private string actionName = "";
     private string pathLOG = @"D:\Stream\Logs\" + DateTime.Now.ToShortDateString() + ".log";
     private string pathTXT = @"D:\Stream\Commands\";
     private string pathSFX = @"D:\Stream\Sounds\";
@@ -31,13 +37,15 @@ public class CPHInline
         if (message.StartsWith("!")) {
             string[] arguments = message.Split(' ');
             string command = arguments[0].Replace("!","");
+            string commandPath = "";
             int millisecondsToAdd = 0;
             CPH.LogInfo($"  {command}");
             
             #region TXT
             if (File.Exists(pathTXT + command + ".txt") && command != "mod") {
                 // Is a TXT command
-                ReadCommand(pathTXT + command + ".txt", arguments);
+                commandPath = pathTXT + command + ".txt";
+                //ReadCommand(pathTXT + command + ".txt", arguments);
             }
             #endregion
             #region Random TXT
@@ -47,17 +55,24 @@ public class CPHInline
                 string[] cmds = Directory.GetFiles(pathTXT + command);
                 int cmdToExecute = r.Next(cmds.Length);
 
-                ReadCommand(pathTXT + command + @"\" + cmds[cmdToExecute] + ".txt", arguments);
+                //ReadCommand(pathTXT + command + @"\" + cmds[cmdToExecute] + ".txt", arguments);
+                commandPath = pathTXT + command + @"\" + cmds[cmdToExecute] + ".txt";
             }
             #endregion
             #region Moderator Only TXT
             // Moderator only commands
             else if (File.Exists(pathTXT + @"mod\" + command + ".txt") && isModerator) {
                 // Is a TXT command but runs a random file in that folder
-                ReadCommand(pathTXT + @"mod\" + command + ".txt", arguments);
+                commandPath = pathTXT + @"mod\" + command + ".txt";
+                //ReadCommand(pathTXT + @"mod\" + command + ".txt", arguments);
             }
             #endregion
+            if (commandPath != "") {
+                //List<string> output = ReadCommand(commandPath, arguments);
+                ReadCommand(commandPath, arguments);
+            }
 
+            // Then deal with the price and cooldown for the executed command
             int price = GetCommandPrice(command);
 
             if (DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand")) >= 0 && DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand" + command)) >= 0 && price <= GetUserPoints(userID)) {
@@ -71,7 +86,6 @@ public class CPHInline
                 if (File.Exists(sfx)) {
                     // Is a SFX command
                     millisecondsToAdd = GetDuration(sfx);
-                    //CPH.PlaySound(sfx);
                     CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", false);
                     CPH.ObsSetMediaSourceFile("Component Overlay Effects", "SFX", sfx);
                     CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", true);
@@ -85,7 +99,6 @@ public class CPHInline
                     int cmdToExecute = r.Next(cmds.Length);
                     CPH.LogDebug(cmds[cmdToExecute]);
                     millisecondsToAdd = GetDuration(cmds[cmdToExecute]);
-                    //CPH.PlaySound(cmds[cmdToExecute]);
 
                     CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", false);
                     CPH.ObsSetMediaSourceFile("Component Overlay Effects", "SFX", cmds[cmdToExecute]);
@@ -154,7 +167,8 @@ public class CPHInline
                 Log("WAIT");
                 int t = Int32.Parse(output.Replace("{w}", ""));
                 Log(t.ToString());
-                CPH.Wait(t);
+                //CPH.Wait(t);
+                Thread.Sleep(t);
                 output = "";
             }
             #endregion
@@ -311,7 +325,8 @@ public class CPHInline
             }
             #endregion
 
-            if (hasOutput) {
+            
+            if (hasOutput && output != "") {
                 if (source == "twitch") {
                     CPH.SendMessage(output);
                 }
@@ -320,6 +335,8 @@ public class CPHInline
                 }
             }
         }
+
+        return retVal;
     }
 
     // Returns the cooldown for a specific command
