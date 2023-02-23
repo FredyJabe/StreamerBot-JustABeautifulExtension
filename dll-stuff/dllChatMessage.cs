@@ -22,8 +22,16 @@ public class CPHInline
     private string user, userID, message, source;
     private bool isModerator; 
 
-    public void Handle() {
-        //
+    public void Handle(Dictionary<string, object> args) {
+        // TODO command handling
+        user = args["user"].ToString();
+        userID = args["userId"].ToString();
+        message = args["message"].ToString();
+        source = args["eventSource"].ToString();
+
+        if (message.StartsWith("!")) {
+            // ITS A COMMAND, YAY
+        }
     }
 
     private void ReadCommand(string cmdFile, string[] arguments) {
@@ -66,7 +74,6 @@ public class CPHInline
                 Log("WAIT");
                 int t = Int32.Parse(output.Replace("{w}", ""));
                 Log(t.ToString());
-                //CPH.Wait(t);
                 Thread.Sleep(t);
                 output = "";
             }
@@ -74,7 +81,7 @@ public class CPHInline
             #region r - Random from 1 to X
             if (output.Contains("{r}")) {
                 int randomMax = Int32.Parse(output.Replace("{r}", ""));
-                output = CPH.Between(1, randomMax).ToString();
+                //output = CPH.Between(1, randomMax).ToString();
             }
             #endregion
             #region points - Reads and returns user points
@@ -84,6 +91,7 @@ public class CPHInline
             #endregion
             #region first - The FIRST ONE
             if (output.Contains("{first}")) {
+                /*
                 if (CPH.GetGlobalVar<string>("first") == null) {
                      CPH.SetGlobalVar("first", user);
                      CPH.AddToCredits("first", user, false);
@@ -93,6 +101,7 @@ public class CPHInline
                 else {
                     output = output.Substring(output.IndexOf("{first}") + 7);
                 }
+                */
             }
             #endregion
             #region note - Let's viewers save notes for the streamer
@@ -123,17 +132,19 @@ public class CPHInline
                     Random r = new Random();
                     string[] fartSounds = Directory.GetFiles(pathSFX + "fart");
                     int cmdToExecute = r.Next(fartSounds.Length);
+                    /*
                     CPH.LogDebug(fartSounds[cmdToExecute]);
                     CPH.PlaySound(fartSounds[cmdToExecute]);
 
                     CPH.Wait(CPH.Between(250, 1000));
+                    */
                 }
             }
             #endregion
             #region resetCD - MOD - Resets the cooldown of a specific command
             if (output.Contains("{resetcd}")) {
                 if (arguments.Length > 0) {
-                    CPH.SetGlobalVar("canPlayCommand" + arguments[1], DateTime.Now);
+                    //CPH.SetGlobalVar("canPlayCommand" + arguments[1], DateTime.Now);
                 }
             }
             #endregion
@@ -186,6 +197,7 @@ public class CPHInline
             if (output.Contains("{roulette}")) {
                 output = output.Replace("{roulette}", "");
 
+                /*
                 int chanceRoulette = CPH.GetGlobalVar<int>("chanceRoulette");
 
                 if (CPH.Between(1, chanceRoulette) == 1) {
@@ -198,6 +210,7 @@ public class CPHInline
                 }
 
                 CPH.SetGlobalVar("chanceRoulette", chanceRoulette);
+                */
             }
             #endregion
 
@@ -330,7 +343,7 @@ public class CPHInline
                     + "}";
         Log(data);
 
-        using (StreamWriter writer = new(request.GetRequestStream())) {
+        using (StreamWriter writer = new StreamWriter(request.GetRequestStream())) {
             writer.Write(data);
         }
 
