@@ -22,113 +22,11 @@ public class CPHInline
     private string user, userID, message, source;
     private bool isModerator; 
 
-    public bool Execute() {
-        // Start by setting the received message variables
-        user = args["user"].ToString();
-        userID = args["userId"].ToString();
-        message = args["message"].ToString();
-        source = args["eventSource"].ToString();
-        isModerator = (args["isModerator"].ToString().ToLower() == "true") ? true : false;
-
-        //CPH.LogInfo($"{user}: {message}");
-        Log($"{user}: {message}");
-
-        // Checks if it's a command
-        if (message.StartsWith("!")) {
-            string[] arguments = message.Split(' ');
-            string command = arguments[0].Replace("!","");
-            string commandPath = "";
-            int millisecondsToAdd = 0;
-            CPH.LogInfo($"  {command}");
-            
-            #region TXT
-            if (File.Exists(pathTXT + command + ".txt") && command != "mod") {
-                // Is a TXT command
-                commandPath = pathTXT + command + ".txt";
-                //ReadCommand(pathTXT + command + ".txt", arguments);
-            }
-            #endregion
-            #region Random TXT
-            else if (Directory.Exists(pathTXT + command) && command != "mod") {
-                // Is a TXT command but runs a random file in that folder
-                Random r = new Random();
-                string[] cmds = Directory.GetFiles(pathTXT + command);
-                int cmdToExecute = r.Next(cmds.Length);
-
-                //ReadCommand(pathTXT + command + @"\" + cmds[cmdToExecute] + ".txt", arguments);
-                commandPath = pathTXT + command + @"\" + cmds[cmdToExecute] + ".txt";
-            }
-            #endregion
-            #region Moderator Only TXT
-            // Moderator only commands
-            else if (File.Exists(pathTXT + @"mod\" + command + ".txt") && isModerator) {
-                // Is a TXT command but runs a random file in that folder
-                commandPath = pathTXT + @"mod\" + command + ".txt";
-                //ReadCommand(pathTXT + @"mod\" + command + ".txt", arguments);
-            }
-            #endregion
-            if (commandPath != "") {
-                //List<string> output = ReadCommand(commandPath, arguments);
-                ReadCommand(commandPath, arguments);
-            }
-
-            // Then deal with the price and cooldown for the executed command
-            int price = GetCommandPrice(command);
-
-            if (DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand")) >= 0 && DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand" + command)) >= 0 && price <= GetUserPoints(userID)) {
-                
-                // Charges the user X amount of points to call a command
-                UpdateUserPoints(userID, -price); 
-
-                #region SFX
-                string sfx = pathSFX + command + ".mp3";
-                string gfx = pathGFX + command + ".mp4";
-                if (File.Exists(sfx)) {
-                    // Is a SFX command
-                    millisecondsToAdd = GetDuration(sfx);
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", false);
-                    CPH.ObsSetMediaSourceFile("Component Overlay Effects", "SFX", sfx);
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", true);
-                }
-                #endregion
-                #region Random SFX 
-                else if (Directory.Exists(pathSFX + command)) {
-                    // Is a SFX command but runs a random file in that folder
-                    Random r = new Random();
-                    string[] cmds = Directory.GetFiles(pathSFX + command);
-                    int cmdToExecute = r.Next(cmds.Length);
-                    CPH.LogDebug(cmds[cmdToExecute]);
-                    millisecondsToAdd = GetDuration(cmds[cmdToExecute]);
-
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", false);
-                    CPH.ObsSetMediaSourceFile("Component Overlay Effects", "SFX", cmds[cmdToExecute]);
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", true);
-                }
-                #endregion
-                #region GFX
-                else if (File.Exists(gfx)) {
-                    // Is a GFX command
-                    int duration = GetDuration(gfx);
-
-                    CPH.ObsSetBrowserSource("Component Overlay Effects", "GFX", gfx);
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "GFX", true);
-                    CPH.Wait(duration);
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "GFX", false);
-                    millisecondsToAdd = duration;
-                }
-                #endregion
-
-                // Determines when the next command can be executed
-                CPH.SetGlobalVar("canPlayCommand", DateTime.Now.AddMilliseconds(millisecondsToAdd));
-                CPH.SetGlobalVar("canPlayCommand" + command, DateTime.Now.AddMilliseconds(millisecondsToAdd).AddSeconds(GetCooldown(command)));
-            }
-        }
-
-        return true;
+    public void Handle() {
+        //
     }
 
-    private List<string> ReadCommand(string cmdFile, string[] arguments) {
-        List<string> retVal = new();
+    private void ReadCommand(string cmdFile, string[] arguments) {
         bool hasOutput = true;
         string[] lines = File.ReadAllLines(cmdFile);
 
@@ -292,11 +190,11 @@ public class CPHInline
 
                 if (CPH.Between(1, chanceRoulette) == 1) {
                     chanceRoulette = 6;
-                    output = $"explose la tronche de {user}!!";
+                    output = "explose la tronche de " + user + "!!";
                 }
                 else {
                     chanceRoulette --;
-                    output = $"tire à blanc... il reste {chanceRoulette} chances...";
+                    output = "tire à blanc... il reste " + chanceRoulette.ToString() + " chances...";
                 }
 
                 CPH.SetGlobalVar("chanceRoulette", chanceRoulette);
@@ -318,7 +216,7 @@ public class CPHInline
                         string cmd = c.Split('\\')[i-1].Split('.')[0];
                         string price = GetCommandPrice(cmd).ToString();
                         string cd = GetCooldown(cmd).ToString();
-                        output += cmd + $" (cd:{cd} p:{price})\n";
+                        output += cmd + " (cd:" + cd.ToString() + " p:" + price.ToString() + ")\n";
                     }
                 }
 
@@ -340,8 +238,6 @@ public class CPHInline
                 outputStuff(output);
             }
         }
-
-        return retVal;
     }
 
     // Returns the cooldown for a specific command
@@ -395,7 +291,7 @@ public class CPHInline
 
     // Returns the amount of points the user have
     private int GetUserPoints(string uid) {
-        string file = pathVIEWER + $"{uid}.txt";
+        string file = pathVIEWER + uid + ".txt";
         int retVal = 0;
         if (File.Exists(file)) {
             string value = File.ReadAllLines(file)[0];
@@ -406,7 +302,7 @@ public class CPHInline
 
     // Updates the amount of points a user have
     private void UpdateUserPoints(string uid, int pts) {
-        string file = pathVIEWER + $"{uid}.txt";
+        string file = pathVIEWER + uid + ".txt";
 
         // If the user exists, read his points and update
         int points = (File.Exists(file)) ? Int32.Parse(File.ReadAllLines(file)[0]) + pts : pts;
@@ -446,3 +342,113 @@ public class CPHInline
         File.AppendAllText(pathLOG, DateTime.Now.ToString("hh:mm tt") + " | " + line + "\n");
     }
 }
+
+
+
+
+/*
+public bool Execute() {
+        // Start by setting the received message variables
+        user = args["user"].ToString();
+        userID = args["userId"].ToString();
+        message = args["message"].ToString();
+        source = args["eventSource"].ToString();
+        isModerator = (args["isModerator"].ToString().ToLower() == "true") ? true : false;
+
+        //CPH.LogInfo($"{user}: {message}");
+        Log(user + ":" + message);
+
+        // Checks if it's a command
+        if (message.StartsWith("!")) {
+            string[] arguments = message.Split(' ');
+            string command = arguments[0].Replace("!","");
+            string commandPath = "";
+            int millisecondsToAdd = 0;
+            CPH.LogInfo("  " + command);
+            
+            #region TXT
+            if (File.Exists(pathTXT + command + ".txt") && command != "mod") {
+                // Is a TXT command
+                commandPath = pathTXT + command + ".txt";
+                //ReadCommand(pathTXT + command + ".txt", arguments);
+            }
+            #endregion
+            #region Random TXT
+            else if (Directory.Exists(pathTXT + command) && command != "mod") {
+                // Is a TXT command but runs a random file in that folder
+                Random r = new Random();
+                string[] cmds = Directory.GetFiles(pathTXT + command);
+                int cmdToExecute = r.Next(cmds.Length);
+
+                //ReadCommand(pathTXT + command + @"\" + cmds[cmdToExecute] + ".txt", arguments);
+                commandPath = pathTXT + command + @"\" + cmds[cmdToExecute] + ".txt";
+            }
+            #endregion
+            #region Moderator Only TXT
+            // Moderator only commands
+            else if (File.Exists(pathTXT + @"mod\" + command + ".txt") && isModerator) {
+                // Is a TXT command but runs a random file in that folder
+                commandPath = pathTXT + @"mod\" + command + ".txt";
+                //ReadCommand(pathTXT + @"mod\" + command + ".txt", arguments);
+            }
+            #endregion
+            if (commandPath != "") {
+                //List<string> output = ReadCommand(commandPath, arguments);
+                ReadCommand(commandPath, arguments);
+            }
+
+            // Then deal with the price and cooldown for the executed command
+            int price = GetCommandPrice(command);
+
+            if (DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand")) >= 0 && DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand" + command)) >= 0 && price <= GetUserPoints(userID)) {
+                
+                // Charges the user X amount of points to call a command
+                UpdateUserPoints(userID, -price); 
+
+                #region SFX
+                string sfx = pathSFX + command + ".mp3";
+                string gfx = pathGFX + command + ".mp4";
+                if (File.Exists(sfx)) {
+                    // Is a SFX command
+                    millisecondsToAdd = GetDuration(sfx);
+                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", false);
+                    CPH.ObsSetMediaSourceFile("Component Overlay Effects", "SFX", sfx);
+                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", true);
+                }
+                #endregion
+                #region Random SFX 
+                else if (Directory.Exists(pathSFX + command)) {
+                    // Is a SFX command but runs a random file in that folder
+                    Random r = new Random();
+                    string[] cmds = Directory.GetFiles(pathSFX + command);
+                    int cmdToExecute = r.Next(cmds.Length);
+                    CPH.LogDebug(cmds[cmdToExecute]);
+                    millisecondsToAdd = GetDuration(cmds[cmdToExecute]);
+
+                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", false);
+                    CPH.ObsSetMediaSourceFile("Component Overlay Effects", "SFX", cmds[cmdToExecute]);
+                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", true);
+                }
+                #endregion
+                #region GFX
+                else if (File.Exists(gfx)) {
+                    // Is a GFX command
+                    int duration = GetDuration(gfx);
+
+                    CPH.ObsSetBrowserSource("Component Overlay Effects", "GFX", gfx);
+                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "GFX", true);
+                    CPH.Wait(duration);
+                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "GFX", false);
+                    millisecondsToAdd = duration;
+                }
+                #endregion
+
+                // Determines when the next command can be executed
+                CPH.SetGlobalVar("canPlayCommand", DateTime.Now.AddMilliseconds(millisecondsToAdd));
+                CPH.SetGlobalVar("canPlayCommand" + command, DateTime.Now.AddMilliseconds(millisecondsToAdd).AddSeconds(GetCooldown(command)));
+            }
+        }
+
+        return true;
+    }
+*/
