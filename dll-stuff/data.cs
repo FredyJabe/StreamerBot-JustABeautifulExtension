@@ -1,8 +1,9 @@
 using System;
 using System.IO;
+using System.Diagnostics;
 using System.Data.SQLite;
 
-namespace JabeDLL {
+namespace JabeDll {
     public static class Data {
         private static string connectionString = "";
         private static SQLiteConnection connection;
@@ -17,7 +18,7 @@ namespace JabeDLL {
             object[] retVal = {};
             connection.Open();
 
-            
+
 
             connection.Close();
             return retVal;
@@ -29,7 +30,12 @@ namespace JabeDLL {
 
 
 
-            connectionString.Close();
+            connection.Close();
+        }
+
+        // Logs a line
+        public static void Log(string line) {
+            File.AppendAllText(Settings.PathLog, DateTime.Now.ToString("hh:mm tt") + " | " + line + "\n");
         }
     } 
 }

@@ -1,6 +1,6 @@
 using System;
 
-namespace JabeDLL {
+namespace JabeDll {
     public class User {
         private string userId, username;
         private bool isModerator = false; 

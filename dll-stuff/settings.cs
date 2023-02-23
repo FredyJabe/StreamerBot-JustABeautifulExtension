@@ -1,8 +1,10 @@
 using System;
 
-namespace JabeDLL {
+namespace JabeDll {
     public static class Settings {
-        private static string _httpHandlerUrl = @"http://127.0.0.1:7474/DoAction";
+        private static string _httpHandlerUrl = @"127.0.0.1:7474";
+        private static string _lumiaAPIUrl = @"127.0.0.1:39231";
+        private static string _lumiaAPIToken = @"";
         private static string _actionId = "";
         private static string _actionName = "";
         private static string _pathLOG = @"D:\Stream\Logs\" + DateTime.Now.ToShortDateString() + ".log";
@@ -12,32 +14,38 @@ namespace JabeDLL {
         private static string _pathDATA = @"D:\Stream\Data\";
 
         public static string HttpHandlerUrl {
-            get => _httpHandlerUrl;
+            get { return "http://" + _httpHandlerUrl + "/DoAction"; }
+        }
+        public static string LumiaAPIUrl {
+            get { return "http://" + _lumiaAPIUrl + "/api/send?token="; }
+        }
+        public static string LumiaAPIToken {
+            get { return _lumiaAPIToken; }
         }
         public static string ActionId {
-            get => _actionId;
+            get { return _actionId; }
         }
         public static string actionName {
-            get => _actionName;
+            get { return _actionName; }
         }
         public static string PathLog {
-            get => _pathLOG;
+            get { return _pathLOG; }
         }
         public static string PathTxt {
-            get => _pathTXT;
+            get { return _pathTXT; }
         }
         public static string PathSfx {
-            get => _pathSFX;
+            get { return _pathSFX; }
         }
         public static string PathGfx {
-            get => _pathGFX;
+            get { return _pathGFX; }
         }
         public static string PathData {
-            get => _pathDATA;
+            get { return _pathDATA; }
         }
 
         public static void Initialize() {
-            string settingsPath = @"JabeDLL/";
+            string settingsPath = @"JabeDLL/Settings.cfg";
         }
     }
 }

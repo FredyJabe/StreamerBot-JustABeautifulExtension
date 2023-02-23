@@ -1,36 +1,34 @@
 using System;
 using System.IO;
-using System.Net;
-using System.Web;
 using System.Collections.Generic;
 using System.Threading;
-using System.Diagnostics;
 
 namespace JabeDll {
-    public class CPHInline
+    public class ChatMessage
     {
         // OPTIONS
-        private string httpHandlerUrl = @"http://127.0.0.1:7474/DoAction";
-        private string actionId = "";
-        private string actionName = "";
-        private string pathLOG = @"D:\Stream\Logs\" + DateTime.Now.ToShortDateString() + ".log";
-        private string pathTXT = @"D:\Stream\Commands\";
-        private string pathSFX = @"D:\Stream\Sounds\";
-        private string pathGFX = @"D:\Stream\Gifs\";
-        private string pathDATA = @"D:\Stream\Data\";
-        private string pathVIEWER = @"D:\Stream\Data\Viewers\";
+        private static string pathTXT = @"D:\Stream\Commands\";
+        private static string pathSFX = @"D:\Stream\Sounds\";
+        private static string pathGFX = @"D:\Stream\Gifs\";
+        private static string pathDATA = @"D:\Stream\Data\";
+        private static string pathVIEWER = @"D:\Stream\Data\Viewers\";
 
-        private string user, userID, message, source;
-        private bool isModerator; 
+        private static string user, userID, message, source;
+        private static bool isModerator = false; 
 
-        public void Handle(Dictionary<string, object> args) {
+        public static void Handle(Dictionary<string, object> args) {
             // TODO command handling
-            user = args["user"].ToString();
+            user = args["userName"].ToString();
             userID = args["userId"].ToString();
-            message = args["message"].ToString();
-            source = args["eventSource"].ToString();
+            message = args["rawMsg"].ToString();
+            source = args["platform"].ToString();
 
             if (message.StartsWith("!")) {
+                string[] arguments = message.Split(' ');
+                string command = arguments[0].Replace("!","");
+                string commandPath = "";
+                int millisecondsToAdd = 0;
+
                 #region TXT
                 if (File.Exists(pathTXT + command + ".txt") && command != "mod") {
                     // Is a TXT command
@@ -116,7 +114,7 @@ namespace JabeDll {
             }
         }
 
-        private void ReadCommand(string cmdFile, string[] arguments) {
+        private static void ReadCommand(string cmdFile, string[] arguments) {
             bool hasOutput = true;
             string[] lines = File.ReadAllLines(cmdFile);
 
@@ -153,9 +151,9 @@ namespace JabeDll {
                 #endregion
                 #region w - Wait for X milliseconds
                 if (output.Contains("{w}")) {
-                    Log("WAIT");
+                    Data.Log("WAIT");
                     int t = Int32.Parse(output.Replace("{w}", ""));
-                    Log(t.ToString());
+                    Data.Log(t.ToString());
                     Thread.Sleep(t);
                     output = "";
                 }
@@ -164,7 +162,7 @@ namespace JabeDll {
                 if (output.Contains("{r}")) {
                     int randomMax = Int32.Parse(output.Replace("{r}", ""));
                     Random r = new Random();
-                    output = r.NextInt64(1, randomMax).ToStgring();
+                    output = r.Next(1, randomMax).ToString();
                 }
                 #endregion
                 #region points - Reads and returns user points
@@ -322,13 +320,15 @@ namespace JabeDll {
 
                 
                 if (hasOutput && output != "") {
-                    Output(output);
+                    //Output(output);
+                    //Communication.OutputToStreamerbot(output);
+                    Communication.OutputToLumiastream(source, output);
                 }
             }
         }
 
         // Returns the cooldown for a specific command
-        private int GetCooldown(string command) {
+        private static int GetCooldown(string command) {
             int retVal = 0;
 
             try {
@@ -341,22 +341,22 @@ namespace JabeDll {
                 }
             }
             catch (Exception e) {
-                Log("ERROR: " + command);
-                Log(e.ToString());
+                Data.Log("ERROR: " + command);
+                Data.Log(e.ToString());
             }
 
             return retVal;
         }
 
         // Returns video duration in milliseconds
-        private int GetDuration(string path) {
+        private static int GetDuration(string path) {
             var tfile = TagLib.File.Create(path);
             TimeSpan duration = tfile.Properties.Duration;
             return duration.Milliseconds + (duration.Seconds * 1000);
         }
 
         // Reads the price for a certain command
-        private int GetCommandPrice(string command) {
+        private static int GetCommandPrice(string command) {
             int retVal = 0;
 
             try {
@@ -369,15 +369,15 @@ namespace JabeDll {
                 }
             }
             catch (Exception e) {
-                Log("ERROR: " + command);
-                Log(e.ToString());
+                Data.Log("ERROR: " + command);
+                Data.Log(e.ToString());
             }
 
             return retVal;
         }
 
         // Returns the amount of points the user have
-        private int GetUserPoints(string uid) {
+        private static int GetUserPoints(string uid) {
             string file = pathVIEWER + uid + ".txt";
             int retVal = 0;
             if (File.Exists(file)) {
@@ -388,7 +388,7 @@ namespace JabeDll {
         }
 
         // Updates the amount of points a user have
-        private void UpdateUserPoints(string uid, int pts) {
+        private static void UpdateUserPoints(string uid, int pts) {
             string file = pathVIEWER + uid + ".txt";
 
             // If the user exists, read his points and update
@@ -398,35 +398,6 @@ namespace JabeDll {
             using (StreamWriter writer = new StreamWriter(file)) {
                 writer.WriteLine(points.ToString());
             }
-        }
-
-        // Test stuff
-        private void outputStuff(string stuff) {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(@"http://127.0.0.1:7474/DoAction");
-            request.Method = "POST";
-            request.ContentType = "application/json";
-            
-            string data = "{"
-                        + "\"action\":{"
-                        + "\"id\" : \"2c8d1a1b-e948-4965-a670-38acd0a10f1b\","
-                        + "\"name\" : \"Websocket Handle\""
-                        + "},"
-                        + "\"args\" : {"
-                        + "\"test\" : \"" + stuff + "\""
-                        + "}"
-                        + "}";
-            Log(data);
-
-            using (StreamWriter writer = new StreamWriter(request.GetRequestStream())) {
-                writer.Write(data);
-            }
-
-            var response = (HttpWebResponse)request.GetResponse();
-        }
-
-        // Logs a line
-        private void Log(string line) {
-            File.AppendAllText(pathLOG, DateTime.Now.ToString("hh:mm tt") + " | " + line + "\n");
         }
     }
 }
