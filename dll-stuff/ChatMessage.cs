@@ -7,10 +7,6 @@ namespace JabeDll {
     public class ChatMessage
     {
         // OPTIONS
-        private static string pathTXT = @"D:\Stream\Commands\";
-        private static string pathSFX = @"D:\Stream\Sounds\";
-        private static string pathGFX = @"D:\Stream\Gifs\";
-        private static string pathDATA = @"D:\Stream\Data\";
         private static string pathVIEWER = @"D:\Stream\Data\Viewers\";
 
         private static string user, userID, message, source;
@@ -18,9 +14,9 @@ namespace JabeDll {
 
         public static void Handle(Dictionary<string, object> args) {
             // TODO command handling
-            user = args["userName"].ToString();
+            user = args["user"].ToString();
             userID = args["userId"].ToString();
-            message = args["rawMsg"].ToString();
+            message = args["message"].ToString();
             source = args["platform"].ToString();
 
             if (message.StartsWith("!")) {
@@ -30,26 +26,26 @@ namespace JabeDll {
                 int millisecondsToAdd = 0;
 
                 #region TXT
-                if (File.Exists(pathTXT + command + ".txt") && command != "mod") {
+                if (File.Exists(Settings.PathTxt + command + ".txt") && command != "mod") {
                     // Is a TXT command
-                    commandPath = pathTXT + command + ".txt";
+                    commandPath = Settings.PathTxt + command + ".txt";
                 }
                 #endregion
                 #region Random TXT
-                else if (Directory.Exists(pathTXT + command) && command != "mod") {
+                else if (Directory.Exists(Settings.PathTxt + command) && command != "mod") {
                     // Is a TXT command but runs a random file in that folder
                     Random r = new Random();
-                    string[] cmds = Directory.GetFiles(pathTXT + command);
+                    string[] cmds = Directory.GetFiles(Settings.PathTxt + command);
                     int cmdToExecute = r.Next(cmds.Length);
 
-                    commandPath = pathTXT + command + @"\" + cmds[cmdToExecute] + ".txt";
+                    commandPath = Settings.PathTxt + command + @"\" + cmds[cmdToExecute] + ".txt";
                 }
                 #endregion
                 #region Moderator Only TXT
                 // Moderator only commands
-                else if (File.Exists(pathTXT + @"mod\" + command + ".txt") && isModerator) {
+                else if (File.Exists(Settings.PathTxt + @"mod\" + command + ".txt") && isModerator) {
                     // Is a TXT command but runs a random file in that folder
-                    commandPath = pathTXT + @"mod\" + command + ".txt";
+                    commandPath = Settings.PathTxt + @"mod\" + command + ".txt";
                 }
                 #endregion
                 if (commandPath != "") {
@@ -67,8 +63,8 @@ namespace JabeDll {
                     UpdateUserPoints(userID, -price); 
 
                     #region SFX
-                    string sfx = pathSFX + command + ".mp3";
-                    string gfx = pathGFX + command + ".mp4";
+                    string sfx = Settings.PathSfx + command + ".mp3";
+                    string gfx = Settings.PathGfx + command + ".mp4";
                     if (File.Exists(sfx)) {
                         // Is a SFX command
                         millisecondsToAdd = GetDuration(sfx);
@@ -79,10 +75,10 @@ namespace JabeDll {
                     }
                     #endregion
                     #region Random SFX 
-                    else if (Directory.Exists(pathSFX + command)) {
+                    else if (Directory.Exists(Settings.PathSfx + command)) {
                         // Is a SFX command but runs a random file in that folder
                         Random r = new Random();
-                        string[] cmds = Directory.GetFiles(pathSFX + command);
+                        string[] cmds = Directory.GetFiles(Settings.PathSfx + command);
                         int cmdToExecute = r.Next(cmds.Length);
                         millisecondsToAdd = GetDuration(cmds[cmdToExecute]);
 
@@ -193,7 +189,7 @@ namespace JabeDll {
                         txt += arguments[i] + " ";
                     }
 
-                    using (StreamWriter writer = new StreamWriter(pathDATA + "notes.txt", true))
+                    using (StreamWriter writer = new StreamWriter(Settings.PathData + "notes.txt", true))
                         writer.WriteLine(user + ": " + txt);
                 }
                 #endregion
@@ -205,13 +201,13 @@ namespace JabeDll {
                 #endregion
                 #region massfart - MOD - Farts a bunch of time depending on the amount of viewers
                 if (output.Contains("{massfart}")) {
-                    int amount = Int32.Parse(File.ReadAllLines(pathDATA + "viewerCount.txt")[0]) * 2;
+                    int amount = Int32.Parse(File.ReadAllLines(Settings.PathData + "viewerCount.txt")[0]) * 2;
 
                     for(var i=0; i<amount; i++)
                     {
                         // Is a SFX command but runs a random file in that folder
                         Random r = new Random();
-                        string[] fartSounds = Directory.GetFiles(pathSFX + "fart");
+                        string[] fartSounds = Directory.GetFiles(Settings.PathSfx + "fart");
                         int cmdToExecute = r.Next(fartSounds.Length);
                         /*
                         CPH.LogDebug(fartSounds[cmdToExecute]);
@@ -243,7 +239,7 @@ namespace JabeDll {
                 #region cmds - Lists all available text commands
                 if (output.Contains(@"{cmds}")) {
                     output = output.Replace(@"{cmds}", " ");
-                    string[] cmds = Directory.GetFiles(pathTXT, "*.txt");
+                    string[] cmds = Directory.GetFiles(Settings.PathTxt, "*.txt");
                     foreach(string c in cmds) {
                         int i = c.Split('\\').Length;
                         output += c.Split('\\')[i-1].Replace(".txt"," ");
@@ -255,7 +251,7 @@ namespace JabeDll {
                     output = output.Replace("{sfx}", " ");
                     
                     //string[] cmds = Directory.GetFiles(pathSFX);
-                    string[] cmds = Directory.GetFileSystemEntries(pathSFX);
+                    string[] cmds = Directory.GetFileSystemEntries(Settings.PathSfx);
                     foreach(string c in cmds) {
                         int i = c.Split('\\').Length;
                         output += c.Split('\\')[i-1].Replace(".mp3","") + " ";
@@ -265,7 +261,7 @@ namespace JabeDll {
                 #region gfx - Lists all available GFXs
                 if (output.Contains("{gfx}")) {
                     output = output.Replace("{gfx}", " ");
-                    string[] cmds = Directory.GetFiles(pathGFX);
+                    string[] cmds = Directory.GetFiles(Settings.PathGfx);
                     foreach(string c in cmds) {
                         int i = c.Split('\\').Length;
                         output += c.Split('\\')[i-1].Replace(".mp4"," ");
@@ -301,7 +297,7 @@ namespace JabeDll {
                     hasOutput = false;
                     output = "";
 
-                    string[] folders = { pathTXT, pathSFX, pathGFX };
+                    string[] folders = { Settings.PathTxt, Settings.PathSfx, Settings.PathGfx };
                     foreach(string p in folders) {
                         string[] cmds = Directory.GetFiles(p);
                         output += "#### " + p + " ####\n";
@@ -314,7 +310,7 @@ namespace JabeDll {
                         }
                     }
 
-                    File.WriteAllText(pathDATA + "TEST.txt", output);
+                    File.WriteAllText(Settings.PathData + "TEST.txt", output);
                 }
                 #endregion
 
@@ -332,7 +328,7 @@ namespace JabeDll {
             int retVal = 0;
 
             try {
-                string[] cmds = File.ReadAllLines(pathDATA + "cooldowns.txt");
+                string[] cmds = File.ReadAllLines(Settings.PathData + "cooldowns.txt");
                 foreach(string l in cmds) {
                     if (l.Contains(command)) {
                         retVal = int.Parse(l.Split('=')[1]);
@@ -360,7 +356,7 @@ namespace JabeDll {
             int retVal = 0;
 
             try {
-                string[] cmds = File.ReadAllLines(pathDATA + "prices.txt");
+                string[] cmds = File.ReadAllLines(Settings.PathData + "prices.txt");
                 foreach(string l in cmds) {
                     if (l.Contains(command)) {
                         retVal = int.Parse(l.Split('=')[1]);

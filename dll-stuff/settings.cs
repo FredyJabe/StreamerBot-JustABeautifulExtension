@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Windows.Forms;
 
 namespace JabeDll {
     public static class Settings {
@@ -7,45 +9,68 @@ namespace JabeDll {
         private static string _lumiaAPIToken = @"";
         private static string _actionId = "";
         private static string _actionName = "";
-        private static string _pathLOG = @"D:\Stream\Logs\" + DateTime.Now.ToShortDateString() + ".log";
-        private static string _pathTXT = @"D:\Stream\Commands\";
-        private static string _pathSFX = @"D:\Stream\Sounds\";
-        private static string _pathGFX = @"D:\Stream\Gifs\";
-        private static string _pathDATA = @"D:\Stream\Data\";
+        private static string _pathDATA = System.IO.Path.GetDirectoryName(Application.ExecutablePath) + @"\JabeDll\";
+        private static string _configFile = _pathDATA + @"Settings.cfg";
 
         public static string HttpHandlerUrl {
-            get { return "http://" + _httpHandlerUrl + "/DoAction"; }
+            get {
+                    return @"http://" + GetSettingValue("HttpHandlerUrl", _httpHandlerUrl) + @"/DoAction";
+            }
         }
         public static string LumiaAPIUrl {
-            get { return "http://" + _lumiaAPIUrl + "/api/send?token="; }
+            get { 
+                return  @"http://" + GetSettingValue("LumiaAPIUrl", _lumiaAPIUrl) + @"/api/send?token=";
+            }
         }
         public static string LumiaAPIToken {
-            get { return _lumiaAPIToken; }
+            get {
+                return GetSettingValue("LumiaAPIToken", _lumiaAPIToken);
+            }
         }
         public static string ActionId {
-            get { return _actionId; }
+            get {
+                return GetSettingValue("ActionId", _actionId);
+            }
         }
         public static string actionName {
-            get { return _actionName; }
-        }
-        public static string PathLog {
-            get { return _pathLOG; }
-        }
-        public static string PathTxt {
-            get { return _pathTXT; }
-        }
-        public static string PathSfx {
-            get { return _pathSFX; }
-        }
-        public static string PathGfx {
-            get { return _pathGFX; }
+            get {
+                return GetSettingValue("ActionName", _actionName);
+            }
         }
         public static string PathData {
             get { return _pathDATA; }
         }
+        public static string PathLog {
+            get { return PathData + @"Logs\" + DateTime.Now.ToShortDateString() + ".log"; }
+        }
+        public static string PathTxt {
+            get { return PathData + @"Commands\"; }
+        }
+        public static string PathSfx {
+            get { return PathData + @"SFXs\"; }
+        }
+        public static string PathGfx {
+            get { return PathData + @"GFXs\"; }
+        }
 
-        public static void Initialize() {
-            string settingsPath = @"JabeDLL/Settings.cfg";
+        private static string GetSettingValue(string key, string defaultValue) {
+            string retVal = defaultValue;
+
+            if (File.Exists(_configFile)) {
+                foreach(string s in File.ReadAllLines(_configFile)) {
+                    if (!s.StartsWith("::") && s != "") {
+                        string key2 = s.Split(",")[0];
+                        string value = s.Split(",")[1];
+
+                        if (key2 == key) {
+                            retVal = key;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return retVal;
         }
     }
 }
