@@ -53,6 +53,7 @@ namespace JabeDll {
             get { return PathData + @"GFXs\"; }
         }
 
+        // Retrieves a specific setting value
         private static string GetSettingValue(string key, string defaultValue) {
             string retVal = defaultValue;
 
