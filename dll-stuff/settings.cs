@@ -59,11 +59,13 @@ namespace JabeDll {
             if (File.Exists(_configFile)) {
                 foreach(string s in File.ReadAllLines(_configFile)) {
                     if (!s.StartsWith("::") && s != "") {
-                        string key2 = s.Split(",")[0];
-                        string value = s.Split(",")[1];
+                        Data.Log("s: " + s);
+
+                        string key2 = s.Split(',')[0];
+                        string value = s.Split(',')[1];
 
                         if (key2 == key) {
-                            retVal = key;
+                            retVal = value;
                             break;
                         }
                     }
