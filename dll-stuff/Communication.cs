@@ -12,6 +12,7 @@ namespace JabeDll {
             request.Method = "POST";
             request.ContentType = "application/json";
             
+            // TODO Format this better so users can use it to send messages via Streamerbot
             string data = "{"
                         + "\"action\":{"
                         + "\"id\" : \"2c8d1a1b-e948-4965-a670-38acd0a10f1b\","

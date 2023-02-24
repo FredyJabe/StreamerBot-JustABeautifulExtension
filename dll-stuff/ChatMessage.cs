@@ -13,7 +13,6 @@ namespace JabeDll {
         private static bool isModerator = false; 
 
         public static void Handle(Dictionary<string, object> args) {
-            // TODO command handling
             user = args["user"].ToString();
             userID = args["userId"].ToString();
             message = args["message"].ToString();
@@ -55,6 +54,7 @@ namespace JabeDll {
                 // Then deal with the price and cooldown for the executed command
                 int price = GetCommandPrice(command);
 
+                // TODO check cooldowns without CPH
                 //if (DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand")) >= 0 && 
                 //    DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand" + command)) >= 0 && 
                 //    price <= GetUserPoints(userID)) {
@@ -68,7 +68,7 @@ namespace JabeDll {
                     if (File.Exists(sfx)) {
                         // Is a SFX command
                         millisecondsToAdd = GetDuration(sfx);
-                        // TODO Find a way to send commands to OBS
+                        // TODO Find a way to send commands to OBS without CPH
                         //CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", false);
                         //CPH.ObsSetMediaSourceFile("Component Overlay Effects", "SFX", sfx);
                         //CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", true);
@@ -82,7 +82,7 @@ namespace JabeDll {
                         int cmdToExecute = r.Next(cmds.Length);
                         millisecondsToAdd = GetDuration(cmds[cmdToExecute]);
 
-                        // TODO find a way to send stuff to OBS
+                        // TODO find a way to send stuff to OBS without CPH
                         //CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", false);
                         //CPH.ObsSetMediaSourceFile("Component Overlay Effects", "SFX", cmds[cmdToExecute]);
                         //CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", true);
@@ -93,7 +93,7 @@ namespace JabeDll {
                         // Is a GFX command
                         int duration = GetDuration(gfx);
 
-                        // TODO find a way to send stuff to OBS
+                        // TODO find a way to send stuff to OBS without CPH
                         //CPH.ObsSetBrowserSource("Component Overlay Effects", "GFX", gfx);
                         //CPH.ObsSetSourceVisibility("Component Overlay Effects", "GFX", true);
                         //CPH.Wait(duration);
@@ -103,7 +103,7 @@ namespace JabeDll {
                     #endregion
 
                     // Determines when the next command can be executed
-                    // TODO use the DB to check cooldowns
+                    // TODO use the DB to check cooldowns? without CPH
                       //CPH.SetGlobalVar("canPlayCommand", DateTime.Now.AddMilliseconds(millisecondsToAdd));
                       //CPH.SetGlobalVar("canPlayCommand" + command, DateTime.Now.AddMilliseconds(millisecondsToAdd).AddSeconds(GetCooldown(command)));
                 }
@@ -168,6 +168,7 @@ namespace JabeDll {
                 #endregion
                 #region first - The FIRST ONE
                 if (output.Contains("{first}")) {
+                    // TODO redo without using CPH
                     /*
                     if (CPH.GetGlobalVar<string>("first") == null) {
                         CPH.SetGlobalVar("first", user);
@@ -209,6 +210,7 @@ namespace JabeDll {
                         Random r = new Random();
                         string[] fartSounds = Directory.GetFiles(Settings.PathSfx + "fart");
                         int cmdToExecute = r.Next(fartSounds.Length);
+                        // TODO redo without CPH
                         /*
                         CPH.LogDebug(fartSounds[cmdToExecute]);
                         CPH.PlaySound(fartSounds[cmdToExecute]);
@@ -221,6 +223,7 @@ namespace JabeDll {
                 #region resetCD - MOD - Resets the cooldown of a specific command
                 if (output.Contains("{resetcd}")) {
                     if (arguments.Length > 0) {
+                        // TODO redo without CPH
                         //CPH.SetGlobalVar("canPlayCommand" + arguments[1], DateTime.Now);
                     }
                 }
@@ -249,8 +252,6 @@ namespace JabeDll {
                 #region sfx - Lists all available SFXs
                 if (output.Contains("{sfx}")) {
                     output = output.Replace("{sfx}", " ");
-                    
-                    //string[] cmds = Directory.GetFiles(pathSFX);
                     string[] cmds = Directory.GetFileSystemEntries(Settings.PathSfx);
                     foreach(string c in cmds) {
                         int i = c.Split('\\').Length;
@@ -274,20 +275,21 @@ namespace JabeDll {
                 if (output.Contains("{roulette}")) {
                     output = output.Replace("{roulette}", "");
 
-                    /*
-                    int chanceRoulette = CPH.GetGlobalVar<int>("chanceRoulette");
+                    // TODO Redo without CPH
+                    //int chanceRoulette = CPH.GetGlobalVar<int>("chanceRoulette");
+                    int chanceRoulette = 6;
 
-                    if (CPH.Between(1, chanceRoulette) == 1) {
-                        chanceRoulette = 6;
+                    //if (CPH.Between(1, chanceRoulette) == 1) {
+                    if (new Random.Next(1, 6) == 1) {
+                        //chanceRoulette = 6;
                         output = "explose la tronche de " + user + "!!";
                     }
                     else {
-                        chanceRoulette --;
+                        //chanceRoulette --;
                         output = "tire à blanc... il reste " + chanceRoulette.ToString() + " chances...";
                     }
 
-                    CPH.SetGlobalVar("chanceRoulette", chanceRoulette);
-                    */
+                    //CPH.SetGlobalVar("chanceRoulette", chanceRoulette);
                 }
                 #endregion
 
@@ -316,7 +318,8 @@ namespace JabeDll {
 
                 
                 if (hasOutput && output != "") {
-                    //Output(output);
+                    // TODO Check if Lumiastream is used, if not use Streamerbot
+                    
                     //Communication.OutputToStreamerbot(output);
                     Communication.OutputToLumiastream(source, output);
                 }
@@ -397,112 +400,3 @@ namespace JabeDll {
         }
     }
 }
-
-
-
-/*
-public bool Execute() {
-        // Start by setting the received message variables
-        user = args["user"].ToString();
-        userID = args["userId"].ToString();
-        message = args["message"].ToString();
-        source = args["eventSource"].ToString();
-        isModerator = (args["isModerator"].ToString().ToLower() == "true") ? true : false;
-
-        //CPH.LogInfo($"{user}: {message}");
-        Log(user + ":" + message);
-
-        // Checks if it's a command
-        if (message.StartsWith("!")) {
-            string[] arguments = message.Split(' ');
-            string command = arguments[0].Replace("!","");
-            string commandPath = "";
-            int millisecondsToAdd = 0;
-            CPH.LogInfo("  " + command);
-            
-            #region TXT
-            if (File.Exists(pathTXT + command + ".txt") && command != "mod") {
-                // Is a TXT command
-                commandPath = pathTXT + command + ".txt";
-                //ReadCommand(pathTXT + command + ".txt", arguments);
-            }
-            #endregion
-            #region Random TXT
-            else if (Directory.Exists(pathTXT + command) && command != "mod") {
-                // Is a TXT command but runs a random file in that folder
-                Random r = new Random();
-                string[] cmds = Directory.GetFiles(pathTXT + command);
-                int cmdToExecute = r.Next(cmds.Length);
-
-                //ReadCommand(pathTXT + command + @"\" + cmds[cmdToExecute] + ".txt", arguments);
-                commandPath = pathTXT + command + @"\" + cmds[cmdToExecute] + ".txt";
-            }
-            #endregion
-            #region Moderator Only TXT
-            // Moderator only commands
-            else if (File.Exists(pathTXT + @"mod\" + command + ".txt") && isModerator) {
-                // Is a TXT command but runs a random file in that folder
-                commandPath = pathTXT + @"mod\" + command + ".txt";
-                //ReadCommand(pathTXT + @"mod\" + command + ".txt", arguments);
-            }
-            #endregion
-            if (commandPath != "") {
-                //List<string> output = ReadCommand(commandPath, arguments);
-                ReadCommand(commandPath, arguments);
-            }
-
-            // Then deal with the price and cooldown for the executed command
-            int price = GetCommandPrice(command);
-
-            if (DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand")) >= 0 && DateTime.Compare(DateTime.Now, CPH.GetGlobalVar<DateTime>("canPlayCommand" + command)) >= 0 && price <= GetUserPoints(userID)) {
-                
-                // Charges the user X amount of points to call a command
-                UpdateUserPoints(userID, -price); 
-
-                #region SFX
-                string sfx = pathSFX + command + ".mp3";
-                string gfx = pathGFX + command + ".mp4";
-                if (File.Exists(sfx)) {
-                    // Is a SFX command
-                    millisecondsToAdd = GetDuration(sfx);
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", false);
-                    CPH.ObsSetMediaSourceFile("Component Overlay Effects", "SFX", sfx);
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", true);
-                }
-                #endregion
-                #region Random SFX 
-                else if (Directory.Exists(pathSFX + command)) {
-                    // Is a SFX command but runs a random file in that folder
-                    Random r = new Random();
-                    string[] cmds = Directory.GetFiles(pathSFX + command);
-                    int cmdToExecute = r.Next(cmds.Length);
-                    CPH.LogDebug(cmds[cmdToExecute]);
-                    millisecondsToAdd = GetDuration(cmds[cmdToExecute]);
-
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", false);
-                    CPH.ObsSetMediaSourceFile("Component Overlay Effects", "SFX", cmds[cmdToExecute]);
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", true);
-                }
-                #endregion
-                #region GFX
-                else if (File.Exists(gfx)) {
-                    // Is a GFX command
-                    int duration = GetDuration(gfx);
-
-                    CPH.ObsSetBrowserSource("Component Overlay Effects", "GFX", gfx);
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "GFX", true);
-                    CPH.Wait(duration);
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "GFX", false);
-                    millisecondsToAdd = duration;
-                }
-                #endregion
-
-                // Determines when the next command can be executed
-                CPH.SetGlobalVar("canPlayCommand", DateTime.Now.AddMilliseconds(millisecondsToAdd));
-                CPH.SetGlobalVar("canPlayCommand" + command, DateTime.Now.AddMilliseconds(millisecondsToAdd).AddSeconds(GetCooldown(command)));
-            }
-        }
-
-        return true;
-    }
-*/

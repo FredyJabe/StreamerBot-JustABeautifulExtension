@@ -14,21 +14,19 @@ namespace JabeDll {
         }
 
         public static object[] Read(string request) {
-            // TODO sqlite read data
             object[] retVal = {};
             connection.Open();
 
-
+            // TODO sqlite read data
 
             connection.Close();
             return retVal;
         }
 
         public static void Write(string request) {
-            // TODO sqlite write data
             connection.Open();
 
-
+            // TODO sqlite write data
 
             connection.Close();
         }
