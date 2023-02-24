@@ -4,10 +4,10 @@ using System.Net;
 using System.Web;
 
 namespace JabeDll {
-    public static class Communication {
+    public static class Chatbot {
         // Sends a message to Streamerbot to use Streamerbot's chatbot instead of Lumia
         // Yes, it can be dumb to send something to yourself, but it gives us flexibility
-        public static void OutputToStreamerbot(string stuff) {
+        public static void ToStreamerbot(string stuff) {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Settings.HttpHandlerUrl);
             request.Method = "POST";
             request.ContentType = "application/json";
@@ -32,7 +32,7 @@ namespace JabeDll {
         }
 
         // Sends a message to Lumiastream API to use their chatbot to send a message to the according platform
-        public static void OutputToLumiastream(string platform, string stuff) {
+        public static void ToLumiastream(string platform, string stuff) {
             if (stuff != "" && platform != "") {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Settings.LumiaAPIUrl + Settings.LumiaAPIToken);
                 request.Method = "POST";

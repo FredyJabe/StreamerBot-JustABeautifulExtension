@@ -320,8 +320,8 @@ namespace JabeDll {
                 if (hasOutput && output != "") {
                     // TODO Check if Lumiastream is used, if not use Streamerbot
                     
-                    //Communication.OutputToStreamerbot(output);
-                    Communication.OutputToLumiastream(source, output);
+                    //Chatbot.ToStreamerbot(output);
+                    Chatbot.ToLumiastream(source, output);
                 }
             }
         }
