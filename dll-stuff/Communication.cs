@@ -6,7 +6,6 @@ using System.Web;
 namespace JabeDll {
     public static class Communication {
         public static void OutputToStreamerbot(string stuff) {
-            Data.Log("HttpHandlerUrl: " + Settings.HttpHandlerUrl);
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Settings.HttpHandlerUrl);
             request.Method = "POST";
             request.ContentType = "application/json";
@@ -31,7 +30,6 @@ namespace JabeDll {
 
         public static void OutputToLumiastream(string platform, string stuff) {
             if (stuff != "" && platform != "") {
-                Data.Log("Lumia Stuff: " + Settings.LumiaAPIUrl + Settings.LumiaAPIToken);
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Settings.LumiaAPIUrl + Settings.LumiaAPIToken);
                 request.Method = "POST";
                 request.ContentType = "application/json";
