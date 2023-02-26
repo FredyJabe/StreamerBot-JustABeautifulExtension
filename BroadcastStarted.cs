@@ -8,7 +8,7 @@ public class CPHInline
     private string username = "Fredy NEWS";
     
 	public bool Execute()
-	{
+	{ 
         // Warns people that we're live!
         CPH.DiscordPostTextToWebhook(webhookUrl, content, username);
         
