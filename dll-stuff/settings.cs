@@ -11,6 +11,7 @@ namespace JabeDll {
         private static string _obsPassword = @"";
         private static string _actionId = "";
         private static string _actionName = "";
+        private static bool _useLumiastream = false;
         private static string _pathDATA = System.IO.Path.GetDirectoryName(Application.ExecutablePath) + @"\JabeDll\";
         private static string _configFile = _pathDATA + @"Settings.cfg";
 
@@ -47,6 +48,11 @@ namespace JabeDll {
         public static string ActionName {
             get {
                 return GetSettingValue("ActionName", _actionName);
+            }
+        }
+        public static bool UseLumiastream {
+            get {
+                return (GetSettingValue("UseLumiastream", _useLumiastream) = "yes") ? true : false;
             }
         }
         public static string PathData {
