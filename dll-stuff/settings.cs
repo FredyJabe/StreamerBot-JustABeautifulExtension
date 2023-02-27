@@ -6,7 +6,9 @@ namespace JabeDll {
     public static class Settings {
         private static string _httpHandlerUrl = @"127.0.0.1:7474";
         private static string _lumiaAPIUrl = @"127.0.0.1:39231";
+        private static string _obsUrl = @"127.0.0.1:4455";
         private static string _lumiaAPIToken = @"";
+        private static string _obsPassword = @"";
         private static string _actionId = "";
         private static string _actionName = "";
         private static string _pathDATA = System.IO.Path.GetDirectoryName(Application.ExecutablePath) + @"\JabeDll\";
@@ -15,6 +17,16 @@ namespace JabeDll {
         public static string HttpHandlerUrl {
             get {
                     return @"http://" + GetSettingValue("HttpHandlerUrl", _httpHandlerUrl) + @"/DoAction";
+            }
+        }
+        public static string ObsUrl {
+            get {
+                return GetSettingValue("ObsUrl", _obsUrl);
+            }
+        }
+        public static string ObsPassword {
+            get {
+                return GetSettingValue("ObsPassword", _obsPassword);
             }
         }
         public static string LumiaAPIUrl {
@@ -32,7 +44,7 @@ namespace JabeDll {
                 return GetSettingValue("ActionId", _actionId);
             }
         }
-        public static string actionName {
+        public static string ActionName {
             get {
                 return GetSettingValue("ActionName", _actionName);
             }
@@ -45,6 +57,9 @@ namespace JabeDll {
         }
         public static string PathTxt {
             get { return PathData + @"Commands\"; }
+        }
+        public static string PathMatch {
+            get { return PathData + @"ChatMatch\"; }
         }
         public static string PathSfx {
             get { return PathData + @"SFXs\"; }
