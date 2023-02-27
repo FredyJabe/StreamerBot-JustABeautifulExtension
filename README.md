@@ -21,3 +21,8 @@ Screenshots and more information coming soon
 
 ## Problems?
 If you find any bug, have a feature request or anything like, feel free to open an Issue here on the repo and I'll see what I can do to fix it.
+
+### References used
+- [`TagLibSharp.dll`](https://github.com/mono/taglib-sharp)
+- [`System.Data.SQLite.dll`](https://system.data.sqlite.org/index.html/doc/trunk/www/index.wiki)
+- [`obs-websocket-dotnet.dll`](https://github.com/BarRaider/obs-websocket-dotnet)
