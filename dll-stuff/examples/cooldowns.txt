@@ -1,0 +1,3 @@
+firstcommand=900
+secondcommand=60
+somethingelse=60
