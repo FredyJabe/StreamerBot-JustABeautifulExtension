@@ -318,7 +318,7 @@ namespace JabeDll {
 
                 
                 if (hasOutput && output != "") {
-                    (Settings.UseLumiastream) ? Chatbot.ToLumiastream(source, output) : Chatbot.ToStreamerbot(output);
+                    (Settings.UseLumiastream) ? Chatbot.ToLumiastream(source, output) : Chatbot.ToStreamerbot(source, output);
                 }
             }
         }
