@@ -1,2 +1,0 @@
-firstcommand=100
-secondcommand=2500
