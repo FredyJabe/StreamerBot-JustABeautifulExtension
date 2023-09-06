@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Net;
 using System.Web;
@@ -6,23 +6,19 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Diagnostics;
 
+using Newtonsoft.Json.Linq;
+
 public class CPHInline
 {
     // OPTIONS
-    private string httpHandlerUrl = @"http://127.0.0.1:7474/DoAction";
-    private string actionId = "";
-    private string actionName = "";
-    private string pathLOG = @"D:\Stream\Logs\" + DateTime.Now.ToShortDateString() + ".log";
-    private string pathTXT = @"D:\Stream\Commands\";
-    private string pathSFX = @"D:\Stream\Sounds\";
-    private string pathGFX = @"D:\Stream\Gifs\";
-    private string pathDATA = @"D:\Stream\Data\";
-    private string pathVIEWER = @"D:\Stream\Data\Viewers\";
+	private string pathMAIN, pathLOG, pathTXT, pathSFX, pathGFX, pathDATA, pathVIEWER, pathALERTS;
 
     private string user, userID, message, source;
     private bool isModerator; 
 
     public bool Execute() {
+		VerifyFiles();
+		
         // Start by setting the received message variables
         user = args["user"].ToString();
         userID = args["userId"].ToString();
@@ -32,20 +28,18 @@ public class CPHInline
 
         //CPH.LogInfo($"{user}: {message}");
         Log($"{user}: {message}");
-
+		
         // Checks if it's a command
         if (message.StartsWith("!")) {
             string[] arguments = message.Split(' ');
             string command = arguments[0].Replace("!","");
             string commandPath = "";
             int millisecondsToAdd = 0;
-            CPH.LogInfo($"  {command}");
             
             #region TXT
             if (File.Exists(pathTXT + command + ".txt") && command != "mod") {
                 // Is a TXT command
                 commandPath = pathTXT + command + ".txt";
-                //ReadCommand(pathTXT + command + ".txt", arguments);
             }
             #endregion
             #region Random TXT
@@ -54,9 +48,13 @@ public class CPHInline
                 Random r = new Random();
                 string[] cmds = Directory.GetFiles(pathTXT + command);
                 int cmdToExecute = r.Next(cmds.Length);
+				
+				Log(cmds[cmdToExecute]);
 
                 //ReadCommand(pathTXT + command + @"\" + cmds[cmdToExecute] + ".txt", arguments);
-                commandPath = pathTXT + command + @"\" + cmds[cmdToExecute] + ".txt";
+                commandPath = cmds[cmdToExecute];
+                //commandPath = pathTXT + command + @"\" + cmds[cmdToExecute] + ".txt";
+				Log(commandPath);
             }
             #endregion
             #region Moderator Only TXT
@@ -80,15 +78,16 @@ public class CPHInline
                 // Charges the user X amount of points to call a command
                 UpdateUserPoints(userID, -price); 
 
-                #region SFX
-                string sfx = pathSFX + command + ".mp3";
+				string sfx = pathSFX + command + ".mp3";
                 string gfx = pathGFX + command + ".mp4";
+				
+                #region SFX
                 if (File.Exists(sfx)) {
                     // Is a SFX command
                     millisecondsToAdd = GetDuration(sfx);
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", false);
-                    CPH.ObsSetMediaSourceFile("Component Overlay Effects", "SFX", sfx);
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", true);
+                    CPH.ObsSetSourceVisibility(CPH.GetGlobalVar<string>("obsSceneEffects"), CPH.GetGlobalVar<string>("obsSourceSFX"), false);
+                    CPH.ObsSetMediaSourceFile(CPH.GetGlobalVar<string>("obsSceneEffects"), CPH.GetGlobalVar<string>("obsSourceSFX"), $"{System.AppDomain.CurrentDomain.BaseDirectory}{sfx}");
+                    CPH.ObsSetSourceVisibility(CPH.GetGlobalVar<string>("obsSceneEffects"), CPH.GetGlobalVar<string>("obsSourceSFX"), true);
                 }
                 #endregion
                 #region Random SFX 
@@ -100,9 +99,9 @@ public class CPHInline
                     CPH.LogDebug(cmds[cmdToExecute]);
                     millisecondsToAdd = GetDuration(cmds[cmdToExecute]);
 
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", false);
-                    CPH.ObsSetMediaSourceFile("Component Overlay Effects", "SFX", cmds[cmdToExecute]);
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "SFX", true);
+                    CPH.ObsSetSourceVisibility(CPH.GetGlobalVar<string>("obsSceneEffects"), CPH.GetGlobalVar<string>("obsSourceSFX"), false);
+                    CPH.ObsSetMediaSourceFile(CPH.GetGlobalVar<string>("obsSceneEffects"), CPH.GetGlobalVar<string>("obsSourceSFX"), $"{System.AppDomain.CurrentDomain.BaseDirectory}{cmds[cmdToExecute]}");
+                    CPH.ObsSetSourceVisibility(CPH.GetGlobalVar<string>("obsSceneEffects"), CPH.GetGlobalVar<string>("obsSourceSFX"), true);
                 }
                 #endregion
                 #region GFX
@@ -110,10 +109,7 @@ public class CPHInline
                     // Is a GFX command
                     int duration = GetDuration(gfx);
 
-                    CPH.ObsSetBrowserSource("Component Overlay Effects", "GFX", gfx);
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "GFX", true);
-                    CPH.Wait(duration);
-                    CPH.ObsSetSourceVisibility("Component Overlay Effects", "GFX", false);
+					ShowInObs(CPH.GetGlobalVar<string>("obsSceneEffects"), CPH.GetGlobalVar<string>("obsSourceGFX"), $"{System.AppDomain.CurrentDomain.BaseDirectory}{gfx}", duration);
                     millisecondsToAdd = duration;
                 }
                 #endregion
@@ -123,12 +119,22 @@ public class CPHInline
                 CPH.SetGlobalVar("canPlayCommand" + command, DateTime.Now.AddMilliseconds(millisecondsToAdd).AddSeconds(GetCooldown(command)));
             }
         }
+		else {
+			// When it's not a command, play a sound to make sure you don't miss the message
+			string chatMessageAlert = $"{pathALERTS}chat-notif.mp3";
+			if (File.Exists(chatMessageAlert)) {
+				CPH.PlaySound(chatMessageAlert);
+			}
+		}
 
         return true;
     }
 
     private void ReadCommand(string cmdFile, string[] arguments) {
         bool hasOutput = true;
+		bool isAction = false;
+		bool isAnnounce = false;
+		bool isTTS = false;
         string[] lines = File.ReadAllLines(cmdFile);
 
         //foreach(string l in lines) {
@@ -139,7 +145,12 @@ public class CPHInline
             #region args - Returns a specific argument
             for(var i = 1; i < arguments.Length; i ++) {
                 if (output.Contains("{" + i.ToString() + "}")) {
-                    output = output.Replace("{" + i.ToString() + "}", arguments[i]);
+					if (output.Contains("{webrequest}") && !cmdFile.Contains("addcmd")) {
+						output = output.Replace("{" + i.ToString() + "}", CPH.UrlEncode(arguments[i]));
+					}
+					else {
+						output = output.Replace("{" + i.ToString() + "}", arguments[i]);
+					}
                 }
             }
             #endregion
@@ -149,12 +160,24 @@ public class CPHInline
                 for(var i = 1; i < arguments.Length; i ++) {
                     rom += arguments[i] + " ";
                 }
-                output = output.Replace("{rom}", rom);
+				
+				if (output.Contains("{webrequest}") && !cmdFile.Contains("addcmd")) {
+					output = output.Replace("{rom}", CPH.UrlEncode(rom));
+				}
+				else {
+					output = output.Replace("{rom}", rom);
+				}
             }
             #endregion
-            #region sender - Returns the user name
-            if (output.Contains("{sender}")) {
-                output = output.Replace("{sender}", user);
+			#region tts - Make the bot say stuff
+			if (output.Contains("{tts}")) {
+				output = output.Replace("{tts}","");
+				isTTS = true;
+			}
+			#endregion
+            #region user - Returns the user name
+            if (output.Contains("{user}")) {
+                output = output.Replace("{user}", user);
             }
             #endregion
             #region noOutput - Removes any output the command has
@@ -205,15 +228,114 @@ public class CPHInline
                 }
 
                 using (StreamWriter writer = new StreamWriter(pathDATA + "notes.txt", true))
-                    writer.WriteLine(user + ": " + txt);
+                    writer.WriteLine($"[{DateTime.Now.Day}-{DateTime.Now.Month}] {user}: {txt}");
             }
             #endregion
+			#region webrequest - Executes à webrequest
+			if (output.Contains("{webrequest}")) {
+				string rUrl = output.Replace("{webrequest}", "");
+				
+				HttpWebRequest request = (HttpWebRequest)WebRequest.Create((rUrl.IndexOf("{") != -1) ? rUrl.Substring(0, rUrl.IndexOf("{")) : rUrl);
+				request.Accept = "text/plain";
+
+				StreamReader objReader = new StreamReader(request.GetResponse().GetResponseStream());
+				output = output.Replace($"{request.Address}", "").Replace("{webrequest}", objReader.ReadLine());
+			}
+			#endregion
+			#region announce - Uses the Twitch Announce command
+			if (output.Contains("{announce}")) {
+				output = output.Replace("{announce}", "");
+				isAnnounce = true;
+			}
+			#endregion
+			#region action - Uses the Twitch Shoutout command
+			if (output.Contains("{action}")) {
+					output = output.Replace("{action}", "");
+					isAction = true;
+			}
+			#endregion
+			#region clip - Fetches target's clip
+			if (output.Contains("{clip}")) {
+				string target = output.Replace("{clip}", "").Replace("@", "");
+				output = output.Replace(target, "");
+		
+				Random r = new();
+				
+				var clips = CPH.GetClipsForUser(target, 10);
+				var clip = clips[r.Next(clips.Count)];
+				
+				output = output.Replace("{clip}", $"{clip.Title} : {clip.Url}");
+			}
+			#endregion
+			#region embed - Embed a url to OBS
+			if (output.Contains("{embed}")) {
+				string target = output.Replace("{embed}", "").Replace("@", "");
+				output = output.Replace("{embed}", "").Replace(target, "");
+		
+				Random r = new();
+				
+				var clips = CPH.GetClipsForUser(target, 10);
+				var clip = clips[r.Next(clips.Count)];
+				
+				ShowInObs(CPH.GetGlobalVar<string>("obsSceneEffects"), CPH.GetGlobalVar<string>("obsSourceEmbed"), $"{clip.EmbedUrl}&parent=localhost&autoplay=true", (int)(clip.Duration * 1000f));
+			}
+			#endregion
+			#region exercices
+			if (output.Contains("{exercices}")) {
+				output = output.Replace("{exercices}", "");
+				string[] linesToWrite = { "situps 0", "squats 0", "pushups 0"};
+				File.WriteAllLines($"{pathDATA}exercices.txt", linesToWrite);
+			}
+			#endregion
+			#region addquote - Adds a quote to the quote folder
+			if (output.Contains("{addquote}")) {
+				output = output.Replace("{addquote}", "");
+				hasOutput = false;
+				int quotesAmount = Directory.GetFiles(pathTXT + "quote").Length;
+				
+				using (StreamWriter writer = new StreamWriter($"{pathTXT}quote\\{quotesAmount + 1}.txt", false))
+                    writer.WriteLine($" {output} - {DateTime.Now.Day.ToString("00")}/{DateTime.Now.Month.ToString("00")}");
+			}
+			#endregion
             #region run - Execute a file
                 if (output.Contains("{run}")) {
                     string file = output.Replace("{run}", "");
                     //TODO Finish the run function
                 }
             #endregion
+			#region collab - Shows collaboration link
+			if (output.Contains("{collab}")) {
+				output = output.Replace("{collab}", CPH.GetGlobalVar<string>("collabLink"));
+			}
+			#endregion
+			#region collabstart - MOD - Starts a collab
+			if (output.Contains("{collabstart}")) {
+				output = output.Replace("{collabstart}", "");
+				string collabUrl = $"https://multitwitch.tv/{args["broadcastUserName"].ToString()}";
+				
+				foreach(string s in output.Split(' ')) {
+					collabUrl += $"/{s}";
+				}
+				
+				CPH.SetGlobalVar("collabLink", collabUrl);
+				output = $"Collab starté! {collabUrl}";
+			}
+			#endregion
+			#region collabstop - MOD - Stops a collab
+			if (output.Contains("{collabstop}")) {
+				output = "Collab stoppée!";
+				CPH.SetGlobalVar("collabLink", "");
+			}
+			#endregion
+			#region shoutout - MOD - Uses the twitch Shoutout command
+			if (output.Contains("{shoutout}")) {
+					output = output.Replace("{shoutout}", "");
+					if (output != "") {
+						CPH.TwitchSendShoutoutByLogin(output.Replace("@", ""));
+						output = "";
+					}
+			}
+			#endregion
             #region massfart - MOD - Farts a bunch of time depending on the amount of viewers
             if (output.Contains("{massfart}")) {
                 int amount = Int32.Parse(File.ReadAllLines(pathDATA + "viewerCount.txt")[0]) * 2;
@@ -239,13 +361,27 @@ public class CPHInline
             }
             #endregion
             #region addcmd - MOD - Add a command... FROM A COMMAND
-            // TODO MOD adding commands
+			if (output.Contains("{addcommand}")) {
+				output = output.Replace("{addcommand}", "");
+				string commandName = arguments[1].ToLower();
+				string commandText = "";
+				for(var i = 2; i < arguments.Length; i ++) {
+                    commandText += arguments[i] + " ";
+                }
+				
+				File.WriteAllText($"{pathTXT}{commandName}.txt", commandText);
+			}
             #endregion
             #region rmcmd - MOD - Remove a command... FROM A COMMAND
-            // TODO MOD remove commands
-            #endregion
-            #region edtcmd - MOD - Edit a command... FROM A COMMAND
-            // TODO MOD editing commands
+			if (output.Contains("{removecommand}")) {
+				output = output.Replace("{removecommand}", "");
+				if (arguments.Length > 1) {
+					string commandName = arguments[1].ToLower();
+					if (File.Exists($"{pathTXT}{commandName}.txt")) {
+						File.Delete($"{pathTXT}{commandName}.txt");
+					}
+				}
+			}
             #endregion
 
             // Lists stuff
@@ -282,7 +418,7 @@ public class CPHInline
             }
             #endregion
 
-            // Custom commands asked by viewers
+            // Custom commands
             #region roulette - 6 chances, 1 bullet
             if (output.Contains("{roulette}")) {
                 output = output.Replace("{roulette}", "");
@@ -301,6 +437,17 @@ public class CPHInline
                 CPH.SetGlobalVar("chanceRoulette", chanceRoulette);
             }
             #endregion
+			#region gif - shows a random gif depending on the parameter
+			if (output.Contains("{randomgif}")) {
+				output = output.Replace("{randomgif}", "");
+				
+				string embed_url = JObject.Parse(JObject.Parse(output).GetValue("data").ToString()).GetValue("embed_url").ToString();
+				
+				CPH.SetGlobalVar("canPlayCommandgif", DateTime.Now.AddMilliseconds(15000));
+				
+				ShowInObs(CPH.GetGlobalVar<string>("obsSceneEffects"), CPH.GetGlobalVar<string>("obsSourceGFX"), embed_url, 5000);
+			}
+			#endregion
 
             // Outputs ALL available commands for users to a textfile
             #region outputCommandList - DEBUG - Outputs every commands with cooldowns and prices
@@ -327,18 +474,15 @@ public class CPHInline
 
             
             if (hasOutput && output != "") {
-                if (source == "twitch") {
-                    CPH.SendMessage(output);
-                }
-                else {
-                    CPH.SendYouTubeMessage(output);
-                }
+				if (isAction) CPH.SendAction(output);
+				else if (isAnnounce) CPH.TwitchAnnounce(output);
+				else if (isTTS) CPH.TtsSpeak("test", output);
+				else CPH.SendMessage(output);
             }
-        }
-
-        return retVal;
+		}
     }
 
+#region Methods
     // Returns the cooldown for a specific command
     private int GetCooldown(string command) {
         int retVal = 0;
@@ -364,6 +508,7 @@ public class CPHInline
     private int GetDuration(string path) {
         var tfile = TagLib.File.Create(path);
         TimeSpan duration = tfile.Properties.Duration;
+		
         return duration.Milliseconds + (duration.Seconds * 1000);
     }
 
@@ -411,9 +556,64 @@ public class CPHInline
             writer.WriteLine(points.ToString());
         }
     }
+	
+	// Shows something in OBS
+	private void ShowInObs(string nomScene, string nomSource, string toShow, int duration) {
+		CPH.ObsSetBrowserSource(nomScene, nomSource, toShow);
+		CPH.ObsSetSourceVisibility(nomScene, nomSource, true);
+		
+		CPH.Wait(duration);
+		CPH.ObsSetSourceVisibility(nomScene, nomSource, false);
+	}
 
     // Logs a line
     private void Log(string line) {
-        File.AppendAllText(pathLOG, DateTime.Now.ToString("hh:mm tt") + " | " + line + "\n");
+        File.AppendAllText($"{pathLOG}\\{DateTime.Now.ToShortDateString()}.log", DateTime.Now.ToString("hh:mm tt") + " | " + line + "\n");
     }
+	
+	// Checks if the paths exists, if not, create all necessary files and folders
+	// Usefull for the first run
+	private void VerifyFiles() {
+		pathMAIN = CPH.GetGlobalVar<string>("pathMain");
+		pathLOG = CPH.GetGlobalVar<string>("pathLogs");
+		pathTXT = CPH.GetGlobalVar<string>("pathTXTs");
+		pathSFX = CPH.GetGlobalVar<string>("pathSFXs");
+		pathGFX = CPH.GetGlobalVar<string>("pathGFXs");
+		pathDATA = CPH.GetGlobalVar<string>("pathData");
+		pathVIEWER = CPH.GetGlobalVar<string>("pathView");
+		pathALERTS = CPH.GetGlobalVar<string>("pathAler");
+		
+		if (!Directory.Exists(pathMAIN)) {
+			// Generates the required folders
+			Directory.CreateDirectory(pathMAIN);
+			Directory.CreateDirectory(pathLOG);
+			Directory.CreateDirectory(pathTXT);
+			Directory.CreateDirectory($"{pathTXT}mod");
+			Directory.CreateDirectory($"{pathTXT}quote");
+			Directory.CreateDirectory(pathSFX);
+			Directory.CreateDirectory(pathGFX);
+			Directory.CreateDirectory(pathDATA);
+			Directory.CreateDirectory(pathVIEWER);
+			Directory.CreateDirectory(pathALERTS);
+			
+			Log("Generating necessary folders and files..");
+			
+			// And continues pis creating base files
+			File.WriteAllText($"{pathTXT}mod\\addcmd.txt", "{addcommand}");
+			File.WriteAllText($"{pathTXT}mod\\rmcmd.txt", "{addcommand}");
+			File.WriteAllText($"{pathTXT}mod\\so.txt", "Shoutout to https://twitch.tv/{1}!!\n{shoutout}{1}");
+			File.WriteAllText($"{pathTXT}mod\\collabstart.txt", "{collabstart}{rom}");
+			File.WriteAllText($"{pathTXT}mod\\collabstop.txt", "{collabstop}");
+			File.WriteAllText($"{pathTXT}commands.txt", "Here are the available commands: {cmds}");
+			File.WriteAllText($"{pathTXT}collab.txt", "{collab}");
+			File.WriteAllText($"{pathDATA}cooldowns.txt", "");
+			File.WriteAllText($"{pathDATA}exercices.txt", "");
+			File.WriteAllText($"{pathDATA}prices.txt", "");
+			File.WriteAllText($"{pathDATA}bits.txt", "");
+			File.WriteAllText($"{pathDATA}important.txt", "");
+			
+			Log("Done.");
+		}
+	}
+#endregion
 }
