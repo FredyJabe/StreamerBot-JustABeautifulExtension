@@ -3,26 +3,28 @@ using System.IO;
 
 public class CPHInline
 {
-    private string webhookUrl = "WEBHOOK_URL";
-    private string content = "<@&986710953611636746> Mais si c'est pas le Frèdé qui est LIVE toé chose!\nhttps://www.youtube.com/@FredyJabe/live";
-    private string username = "Fredy NEWS";
-    
 	public bool Execute()
 	{ 
-        // Warns people that we're live!
-        CPH.DiscordPostTextToWebhook(webhookUrl, content, username);
-        
-        // Makes sure everytime we start the stream, the credits resets
-        CPH.ResetCredits();
-
-        // Adds all my supporters to the credits
-        foreach( string l in File.ReadAllLines(@"D:\Stream\Data\supporters.txt")) {
-            CPH.AddToCredits("supporters", l, false);
-        }
-
-        // Resets the first and the roulette
-        CPH.SetGlobalVar("first", null);
-        CPH.SetGlobalVar("chanceRoulette", 6);
+		// Sets the general paths
+		CPH.SetGlobalVar("pathMain", @"JabeChatCommands");
+		CPH.SetGlobalVar("pathLogs", @"JabeChatCommands\Logs\");
+		CPH.SetGlobalVar("pathTXTs", @"JabeChatCommands\TXTs\");
+		CPH.SetGlobalVar("pathSFXs", @"JabeChatCommands\SFXs\");
+		CPH.SetGlobalVar("pathGFXs", @"JabeChatCommands\GFXs\");
+		CPH.SetGlobalVar("pathData", @"JabeChatCommands\Data\");
+		CPH.SetGlobalVar("pathView", @"JabeChatCommands\Data\Viewers\");
+		CPH.SetGlobalVar("pathAler", @"JabeChatCommands\Alerts\");
+		
+		CPH.SetGlobalVar("obsSceneEffects", "Component Overlay Effects");
+		CPH.SetGlobalVar("obsSourceSFX", "SFX");
+		CPH.SetGlobalVar("obsSourceGFX", "GFX");
+		CPH.SetGlobalVar("obsSourceEmbed", "Embed");
+	
+	        // Resets the first and the roulette
+	        CPH.SetGlobalVar("first", null);
+	        CPH.SetGlobalVar("chanceRoulette", 6);
+	        CPH.SetGlobalVar("collabLink", "");
+	        //CPH.SetGlobalVar("currentVip", File.ReadAllText(""));
 
 		return true;
 	}
