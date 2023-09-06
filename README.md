@@ -1,6 +1,6 @@
 # StreamerBot-JabeChatCommands
 
-A little command system to use with ['Streamerbot'](https://streamer.bot/) to grow your stream as easily and simply as possible!
+A little command system to use with [`Streamerbot`](https://streamer.bot/) to grow your stream as easily and simply as possible!
 
 ## What does it do?
 The system let's the streamer creates new chat commands as easily as creating a new text file! Also enables SFXs and GFXs to be added as simply as a new file in a folder.
