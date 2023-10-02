@@ -1,4 +1,4 @@
-# StreamerBot-JabeChatCommands
+# StreamerBot-JustABeautifulExtension
 
 A little command system to use with [`Streamerbot`](https://streamer.bot/) to grow your stream as easily and simply as possible!
 
